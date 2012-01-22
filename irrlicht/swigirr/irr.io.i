@@ -11,7 +11,7 @@ using namespace scene;
 %}
 
 %include "irr.common.i"
-%import "irr.core.i"
+//%import "irr.core.i"
 
 //////////////////////////////////////////////////////////////////////////////
 // warning

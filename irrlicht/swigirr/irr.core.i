@@ -12,7 +12,7 @@ using namespace scene;
 %feature("unref") irr::IReferenceCounted "$this->drop();"
 
 %include "irr.common.i"
-%import "irr.gui.i"
+//%import "irr.gui.i"
 
 %ignore irr::core::string::operator+=;
 %fragment("SWIG_AsVal_wchar_t", "header", fragment="<wchar.h>") {
