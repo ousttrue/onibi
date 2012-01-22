@@ -1,9 +1,9 @@
-===============================
-[鬼火]オープンソース詰め合わせ
-===============================
+=======================================
+[鬼火]オープンソース詰め合わせ(MinGW用)
+=======================================
 | Irrlichtが独語で鬼火らしいので直訳。
-| 
-| よく使うオープンソースライブラリをビルドしやすいように編成しました。
+| IrrlichtとBulletを中心に3D用途で使うライブラリをMinGWでビルドしやすいようにpremake4を使って編成しました。
+| IrrlichtとBulletのswigを使ったpythonラッパも作成中。
 
 * Irrlicht-1.72(& IrrlichtML)
 * Irrlichtのswigによるpythonラッパ
@@ -12,17 +12,16 @@
 * freetype
 * glew
 * freeglut
+など
 
 | Windows+mingwで楽にビルドできるようにpremake4.luaで構成しています。
 | ライセンスついては、各ライブラリに準拠してください。
 
 .. contents:: Table of Contents
 
-更新
-====
-2011-11-21
-----------
-* Irrlichtにbulletが入ってしまったり構成がよろしくないのでirrmmdを取り除いた
+URL
+===
+* https://github.com/ousttrue/onibi
 
 ディレクトリ構成
 ================
@@ -41,7 +40,7 @@ bullet-2.79のsrcディレクトリ。zlibライセンス。
 bullet/swigbullet
 -----------------
 
-bulletのswigラップ。
+bulletのswigによるラッパ。
 
 bulletdemos
 -----------
@@ -59,7 +58,7 @@ Irrlicht-1.72のincludeとsrcディレクトリzlibライセンス。
 irrlicht/siwgirr
 ----------------
 
-Irrlichtのswigラップ。
+Irrlichtのswigによるラッパ。
 
 bzip2
 -----
@@ -103,13 +102,17 @@ premake4.exe
 
 各ディレクトリのpremake4.luaはpremake4向けのプロジェクト定義です。
 
+ビルド環境
+==========
+1) mingw-get-inst-20111118.exeでC:/MinGWにMinGWとmsysをインストールする。
+2) C:/MinGW/msys/1.0/msys.batでshellに入る
+3) 環境変数::
+
+   export LANG=C
+   export PATH=/mingw/bin:$PATH
+
 ビルド方法
 ==========
-
-gcc-4.6とmakeにパスが通った開発環境を用意する。
-(msys環境とか)
-
-ビルドはいくつかのグループにわかれています。
 
 依存ライブラリのスタティックライブラリをビルド
 ----------------------------------------------
@@ -225,6 +228,11 @@ bulletdemosのビルド
     ==== Building App_UserCollisionAlgorithm (release32) ====
     ==== Building App_VehicleDemo (release32) ====
 
+pythonモジュールのビルド環境
+============================
+1) python-2.7.2.msiでインストール
+2) swigwin-2.0.4.zipを解答してパスを通す
+
 bulletのpythonモジュールをビルド
 --------------------------------
 
@@ -234,13 +242,7 @@ bulletのpythonモジュールをビルド
 ::
 
     > cd onibi/bullet/swigbullet/python
-    > python setup.py build
-
-インストールする場合は、
-
-::
-
-    > python setup.py install
+    > /c/Python27/python setup.py install
 
 irrlichtのpythonモジュールをビルド
 ----------------------------------
@@ -251,13 +253,17 @@ irrlichtのpythonモジュールをビルド
 ::
 
     > cd onibi/irrlicht/swigirr/python
-    > python setup.py build
-
-インストールする場合は、
-
-::
-
-    > python setup.py install
+    > /c/Python27/python setup.py install
 
 | 実行時にIrrlicht.dllがpathの通った場所(C:\Python27\Lib\site-packages\irr-0.1-py2.7-win32.egg\irrなど)に必要。
+
+更新
+====
+2012-01-22
+----------
+* githubに引越し
+
+2011-11-21
+----------
+* Irrlichtにbulletが入ってしまったり構成がよろしくないのでirrmmdを取り除いた
 
