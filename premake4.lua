@@ -1,0 +1,33 @@
+-- A solution contains projects, and defines the available configurations
+solution "Dependencies"
+configurations { "Release", "Debug" }
+configuration "gmake Debug"
+do
+    buildoptions { "-g" }
+    linkoptions { "-g" }
+end
+
+configuration "vs*"
+do
+    linkoptions { "/NODEFAULTLIB:LIBCMT" }
+end
+
+configuration {}
+
+-- freetype
+include "freetype"
+
+-- opengl
+include "glew"
+include "freeglut"
+
+-- irrlicht
+include "zlib"
+include "lzma"
+include "jpeglib"
+include "libpng"
+include "bzip2"
+
+-- mqo, pmd loading
+include "meshio"
+

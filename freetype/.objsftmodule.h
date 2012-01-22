@@ -1,0 +1,1 @@
+/Git Bash.vbs /README.portable /ReleaseNotes.rtf /bin /cmd /doc /etc /git-bash.bat /git-cheetah /git-cmd.bat /lib /libexec /share /ssl This is a generated file. builds/ devel/ docs/ include/ objs/ src/
