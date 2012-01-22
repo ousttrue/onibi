@@ -7,6 +7,11 @@ do
     linkoptions { "-g" }
 end
 
+configuration "gmake"
+do
+  buildoptions { "-Wall", "-U__CYGWIN__", }
+end
+
 configuration "vs*"
 do
     linkoptions { "/NODEFAULTLIB:LIBCMT" }
