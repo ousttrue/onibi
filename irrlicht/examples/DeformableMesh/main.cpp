@@ -14,9 +14,9 @@
 #include <cmath>
 
 #define MEDIA_PATH "../../media/"
-#define PMD_PATH "K:/mmd/model/official/"
-#define PMD_FILE "K:/mmd/model/official/miku.pmd"
-#define VMD_FILE "K:/mmd/motion/408.vmd"
+#define PMD_PATH "../../media/"
+#define PMD_FILE "../../media/miku.pmd"
+#define VMD_FILE "../../media/miku.vmd"
 #define WIDTH 640
 #define HEIGHT 480
 

@@ -6,7 +6,7 @@ configuration "Release"
 do
     flags {
         "Optimize",
-        "StaticRuntime",
+        --"StaticRuntime",
         "NoMinimalRebuild",
         "FloatFast",
     }
@@ -16,7 +16,7 @@ configuration "Debug"
 do
     flags {
         "Symbols",
-        "StaticRuntime" ,
+        --"StaticRuntime" ,
         "NoMinimalRebuild",
         "NoEditAndContinue" ,
         "FloatFast",
@@ -67,12 +67,16 @@ end
 
 configuration "Release"
 do
-    flags { "Optimize", "StaticRuntime", "NoMinimalRebuild", "FloatFast"}
+    flags { "Optimize", 
+    --"StaticRuntime", 
+    "NoMinimalRebuild", "FloatFast"}
 end
 
 configuration "Debug"
 do
-    flags { "Symbols", "StaticRuntime" , "NoMinimalRebuild", "NoEditAndContinue" ,"FloatFast"}
+    flags { "Symbols", 
+    --"StaticRuntime" , 
+    "NoMinimalRebuild", "NoEditAndContinue" ,"FloatFast"}
 end
 
 configuration {"Windows"}

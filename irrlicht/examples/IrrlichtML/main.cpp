@@ -2,6 +2,7 @@
  * Irrlicht FreeType Demo
  */
 #include <irrlicht.h>
+#include <stdio.h>
 #include "driverChoice.h"
 
 using namespace irr;
@@ -237,7 +238,8 @@ int main()
 		if (lastFPS != fps)
 		{
 			wchar_t tmp[1024];
-			snwprintf(tmp, 1024, L"Irrlicht TrueType Demo (fps:%d)", fps);
+			//snwprintf(tmp, 1024, L"Irrlicht TrueType Demo (fps:%d)", fps);
+			swprintf(tmp, L"Irrlicht TrueType Demo (fps:%d)", fps);
 			Device->setWindowCaption(tmp);
 			lastFPS = fps;
 		}

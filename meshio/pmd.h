@@ -37,14 +37,8 @@
 #include "binary.h"
 #include <ostream>
 #include <vector>
-#ifdef _MSC_VER
-#include <boost/array.hpp>
-namespace std {
-  using boost::array;
-}
-#else
 #include <array>
-#endif
+
 
 namespace meshio {
   namespace pmd {

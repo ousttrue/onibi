@@ -41,7 +41,9 @@ files {
   "src/type42/type42.c",
   "src/winfonts/winfnt.c",
 }
-flags { "StaticRuntime", }
+flags { 
+    --"StaticRuntime", 
+}
 buildoptions {}
 defines {
   "_CRT_SECURE_NO_WARNINGS",

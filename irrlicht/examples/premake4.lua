@@ -13,12 +13,18 @@ do
     linkoptions { "-g" }
 end
 
+configuration "vs*"
+do
+    defines {
+        "_USE_MATH_DEFINES",
+    }
+end
+
 configuration "windows"
 do
     defines {
         "WIN32",
         "_WINDOWS",
-        "IRRLICHT_EXPORTS",
     }
 end
 
@@ -51,6 +57,7 @@ include "23.SMeshHandling"
 
 -- DeformableMesh example
 include "DeformableMesh"
+include "irrmmd"
 
 -- IrrlichtML example
 include "IrrlichtML"

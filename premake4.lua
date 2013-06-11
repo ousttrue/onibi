@@ -14,7 +14,7 @@ end
 
 configuration "vs*"
 do
-    linkoptions { "/NODEFAULTLIB:LIBCMT" }
+    --linkoptions { "/NODEFAULTLIB:LIBCMT" }
 end
 
 configuration {}

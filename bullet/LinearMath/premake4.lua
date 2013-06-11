@@ -1,6 +1,6 @@
 project "LinearMath"
 
-language "C"
+language "C++"
 kind "StaticLib"
 includedirs {
     "..",

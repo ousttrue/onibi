@@ -116,8 +116,8 @@ int main()
 
 	// create some text
 
-	CreateWindow(TEXT("STATIC"), TEXT("This is Irrlicht running inside a standard Win32 window.\n"\
-		"Also mixing with MFC and .NET Windows.Forms is possible."),
+	CreateWindow(TEXT("STATIC"), TEXT("This is Irrlicht running inside a standard Win32 window.\n")
+		TEXT("Also mixing with MFC and .NET Windows.Forms is possible."),
 		WS_CHILD | WS_VISIBLE, 20, 20, 400, 40, hWnd, NULL, hInstance, NULL);
 
 	// create window to put irrlicht in

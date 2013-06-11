@@ -1,6 +1,7 @@
 media
 debug
 release
+ipch
 *.d
 *.o
 *.a
@@ -11,6 +12,7 @@ Makefile
 *.vcxproj
 *.filter
 *.user
+*.sdf
 *.log
 *.tlog
 *.idb

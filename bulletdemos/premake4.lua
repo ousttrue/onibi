@@ -6,7 +6,7 @@ configuration "Release"
 do
     flags {
         "Optimize",
-        "StaticRuntime",
+        --"StaticRuntime",
         "NoMinimalRebuild",
         "FloatFast",
     }
@@ -16,7 +16,7 @@ configuration "Debug"
 do
     flags {
         "Symbols",
-        "StaticRuntime" ,
+        --"StaticRuntime" ,
         "NoMinimalRebuild",
         "NoEditAndContinue" ,
         "FloatFast",
