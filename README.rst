@@ -1,6 +1,6 @@
-=======================================
-[鬼火]オープンソース詰め合わせ(MinGW用)
-=======================================
+==============================
+[鬼火]オープンソース詰め合わせ
+==============================
 | Irrlichtが独語で鬼火らしいので直訳。
 | IrrlichtとBulletを中心に3D用途で使うライブラリをMinGWでビルドしやすいようにpremake4を使って編成しました。
 | IrrlichtとBulletのswigを使ったpythonラッパも作成中。
@@ -14,7 +14,7 @@
 * freeglut
 など
 
-| Windows+mingwで楽にビルドできるようにpremake4.luaで構成しています。
+| Windows+(mingw|vc2010 express edition)で楽にビルドできるようにpremake4.luaで構成しています。
 | ライセンスついては、各ライブラリに準拠してください。
 
 .. contents:: Table of Contents
@@ -22,6 +22,31 @@
 URL
 ===
 * https://github.com/ousttrue/onibi
+
+ToDo
+====
+* bullet-2.81に換装する
+* irrlich-1.8に換装する
+* msgpack-rpcを持ってくる  
+* msgpack-rpc経由でシーンを構築するUIをなんか作る(pyQTとか？)
+
+更新
+====
+2013-06-12
+----------
+* irrmmdと合体。とりあえずvc2010で全部ビルドするところまで
+
+2013-06-11
+----------
+* vs2010でビルドしてみた
+
+2012-01-22
+----------
+* githubに引越し
+
+2011-11-21
+----------
+* Irrlichtにbulletが入ってしまったり構成がよろしくないのでirrmmdを取り除いた
 
 ディレクトリ構成
 ================
@@ -144,6 +169,27 @@ Irrlichtのdllをビルド
     ==== Building IrrlichtGui (release) ====
     ==== Building Irrlicht (release) ====
 
+bulletのビルド
+--------------
+::
+
+    > cd onibi/bullet
+    > ../premake4 gmake
+    > make
+    ==== Building LinearMath (release32) ====
+    ==== Building BulletCollision (release32) ====
+    ==== Building BulletDynamics (release32) ====
+    ==== Building BulletSoftBody (release32) ====
+
+irrmmdのビルド
+--------------
+::
+
+    > cd onibi/irrmmd
+    > ../premake4 gmake
+    > make
+
+
 Irrlicht examplesのビルド
 -------------------------
 ::
@@ -176,18 +222,6 @@ Irrlicht examplesのビルド
 
 | メディア置き場が"../../media"になっているので、実行時に
 | ../../mediaにIrrlicht/mediaをコピーする必要があります。
-
-bulletのビルド
---------------
-::
-
-    > cd onibi/bullet
-    > ../premake4 gmake
-    > make
-    ==== Building LinearMath (release32) ====
-    ==== Building BulletCollision (release32) ====
-    ==== Building BulletDynamics (release32) ====
-    ==== Building BulletSoftBody (release32) ====
 
 bulletdemosのビルド
 -------------------
@@ -227,22 +261,4 @@ bulletdemosのビルド
     ==== Building App_TerrainDemo (release32) ====
     ==== Building App_UserCollisionAlgorithm (release32) ====
     ==== Building App_VehicleDemo (release32) ====
-
-更新
-====
-2013-06-12
-----------
-* irrmmdと合体
-
-2013-06-11
-----------
-* vs2010でビルドしてみた
-
-2012-01-22
-----------
-* githubに引越し
-
-2011-11-21
-----------
-* Irrlichtにbulletが入ってしまったり構成がよろしくないのでirrmmdを取り除いた
 
