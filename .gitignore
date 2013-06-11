@@ -13,6 +13,7 @@ Makefile
 *.filter
 *.user
 *.sdf
+*.opensdf
 *.log
 *.tlog
 *.idb

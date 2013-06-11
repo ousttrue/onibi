@@ -6,6 +6,29 @@ defines {
     "UNICODE",
     "_UNICODE",
 }
+includedirs {
+    "../include",
+}
+
+configuration "Debug"
+do
+  defines { "DEBUG" }
+  flags { "Symbols" }
+  targetdir "../../debug"
+  libdirs {
+      "../../debug"
+  }
+end
+
+configuration "Release"
+do
+  defines { "NDEBUG" }
+  flags { "Optimize" }
+  targetdir "../../release"
+  libdirs {
+      "../../release"
+  }
+end
 
 configuration "gmake Debug"
 do

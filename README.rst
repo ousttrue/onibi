@@ -228,37 +228,12 @@ bulletdemosのビルド
     ==== Building App_UserCollisionAlgorithm (release32) ====
     ==== Building App_VehicleDemo (release32) ====
 
-pythonモジュールのビルド環境
-============================
-1) python-2.7.2.msiでインストール
-2) swigwin-2.0.4.zipを解答してパスを通す
-
-bulletのpythonモジュールをビルド
---------------------------------
-
-| 動作確認中・・・
-| 要python、swig.exe
-
-::
-
-    > cd onibi/bullet/swigbullet/python
-    > /c/Python27/python setup.py install
-
-irrlichtのpythonモジュールをビルド
-----------------------------------
-
-| 動作確認中・・・
-| 要python、swig.exe
-
-::
-
-    > cd onibi/irrlicht/swigirr/python
-    > /c/Python27/python setup.py install
-
-| 実行時にIrrlicht.dllがpathの通った場所(C:\Python27\Lib\site-packages\irr-0.1-py2.7-win32.egg\irrなど)に必要。
-
 更新
 ====
+2013-06-12
+----------
+* irrmmdと合体
+
 2013-06-11
 ----------
 * vs2010でビルドしてみた
