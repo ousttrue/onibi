@@ -140,7 +140,7 @@ void btGImpactMeshShape::calculateLocalInertia(btScalar mass,btVector3& inertia)
 #endif
 }
 
-void btGImpactMeshShape::rayTest(const btVector3& rayFrom, const btVector3& rayTo, RayResultCallback& resultCallback) const
+void btGImpactMeshShape::rayTest(const btVector3& rayFrom, const btVector3& rayTo, btCollisionWorld::RayResultCallback& resultCallback) const
 {
 }
 

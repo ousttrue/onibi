@@ -40,64 +40,11 @@ extern bool gDisableDeactivation;
 
 enum	btRigidBodyFlags
 {
-	BT_DISABLE_WORLD_GRAVITY = 1
-};
-
-
-///The btRigidBodyConstructionInfo structure provides information to create a rigid body. Setting mass to zero creates a fixed (non-dynamic) rigid body.
-///For dynamic objects, you can use the collision shape to approximate the local inertia tensor, otherwise use the zero vector (default argument)
-///You can use the motion state to synchronize the world transform between physics and graphics objects. 
-///And if the motion state is provided, the rigid body will initialize its initial world transform from the motion state,
-///m_startWorldTransform is only used when you don't provide a motion state.
-struct	btRigidBodyConstructionInfo
-{
-    btScalar			m_mass;
-
-    ///When a motionState is provided, the rigid body will initialize its world transform from the motion state
-    ///In this case, m_startWorldTransform is ignored.
-    btMotionState*		m_motionState;
-    btTransform	m_startWorldTransform;
-
-    btCollisionShape*	m_collisionShape;
-    btVector3			m_localInertia;
-    btScalar			m_linearDamping;
-    btScalar			m_angularDamping;
-
-    ///best simulation results when friction is non-zero
-    btScalar			m_friction;
-    ///best simulation results using zero restitution.
-    btScalar			m_restitution;
-
-    btScalar			m_linearSleepingThreshold;
-    btScalar			m_angularSleepingThreshold;
-
-    //Additional damping can help avoiding lowpass jitter motion, help stability for ragdolls etc.
-    //Such damping is undesirable, so once the overall simulation quality of the rigid body dynamics system has improved, this should become obsolete
-    bool				m_additionalDamping;
-    btScalar			m_additionalDampingFactor;
-    btScalar			m_additionalLinearDampingThresholdSqr;
-    btScalar			m_additionalAngularDampingThresholdSqr;
-    btScalar			m_additionalAngularDampingFactor;
-
-    btRigidBodyConstructionInfo(	btScalar mass, btMotionState* motionState, btCollisionShape* collisionShape, const btVector3& localInertia=btVector3(0,0,0)):
-    m_mass(mass),
-        m_motionState(motionState),
-        m_collisionShape(collisionShape),
-        m_localInertia(localInertia),
-        m_linearDamping(btScalar(0.)),
-        m_angularDamping(btScalar(0.)),
-        m_friction(btScalar(0.5)),
-        m_restitution(btScalar(0.)),
-        m_linearSleepingThreshold(btScalar(0.8)),
-        m_angularSleepingThreshold(btScalar(1.f)),
-        m_additionalDamping(false),
-        m_additionalDampingFactor(btScalar(0.005)),
-        m_additionalLinearDampingThresholdSqr(btScalar(0.01)),
-        m_additionalAngularDampingThresholdSqr(btScalar(0.01)),
-        m_additionalAngularDampingFactor(btScalar(0.01))
-    {
-        m_startWorldTransform.setIdentity();
-    }
+	BT_DISABLE_WORLD_GRAVITY = 1,
+	///The BT_ENABLE_GYROPSCOPIC_FORCE can easily introduce instability
+	///So generally it is best to not enable it. 
+	///If really needed, run at a high frequency like 1000 Hertz:	///See Demos/GyroscopicDemo for an example use
+	BT_ENABLE_GYROPSCOPIC_FORCE = 2
 };
 
 
@@ -160,6 +107,66 @@ protected:
 
 public:
 
+
+	///The btRigidBodyConstructionInfo structure provides information to create a rigid body. Setting mass to zero creates a fixed (non-dynamic) rigid body.
+	///For dynamic objects, you can use the collision shape to approximate the local inertia tensor, otherwise use the zero vector (default argument)
+	///You can use the motion state to synchronize the world transform between physics and graphics objects. 
+	///And if the motion state is provided, the rigid body will initialize its initial world transform from the motion state,
+	///m_startWorldTransform is only used when you don't provide a motion state.
+	struct	btRigidBodyConstructionInfo
+	{
+		btScalar			m_mass;
+
+		///When a motionState is provided, the rigid body will initialize its world transform from the motion state
+		///In this case, m_startWorldTransform is ignored.
+		btMotionState*		m_motionState;
+		btTransform	m_startWorldTransform;
+
+		btCollisionShape*	m_collisionShape;
+		btVector3			m_localInertia;
+		btScalar			m_linearDamping;
+		btScalar			m_angularDamping;
+
+		///best simulation results when friction is non-zero
+		btScalar			m_friction;
+		///the m_rollingFriction prevents rounded shapes, such as spheres, cylinders and capsules from rolling forever.
+		///See Bullet/Demos/RollingFrictionDemo for usage
+		btScalar			m_rollingFriction;
+		///best simulation results using zero restitution.
+		btScalar			m_restitution;
+
+		btScalar			m_linearSleepingThreshold;
+		btScalar			m_angularSleepingThreshold;
+
+		//Additional damping can help avoiding lowpass jitter motion, help stability for ragdolls etc.
+		//Such damping is undesirable, so once the overall simulation quality of the rigid body dynamics system has improved, this should become obsolete
+		bool				m_additionalDamping;
+		btScalar			m_additionalDampingFactor;
+		btScalar			m_additionalLinearDampingThresholdSqr;
+		btScalar			m_additionalAngularDampingThresholdSqr;
+		btScalar			m_additionalAngularDampingFactor;
+
+		btRigidBodyConstructionInfo(	btScalar mass, btMotionState* motionState, btCollisionShape* collisionShape, const btVector3& localInertia=btVector3(0,0,0)):
+		m_mass(mass),
+			m_motionState(motionState),
+			m_collisionShape(collisionShape),
+			m_localInertia(localInertia),
+			m_linearDamping(btScalar(0.)),
+			m_angularDamping(btScalar(0.)),
+			m_friction(btScalar(0.5)),
+			m_rollingFriction(btScalar(0)),
+			m_restitution(btScalar(0.)),
+			m_linearSleepingThreshold(btScalar(0.8)),
+			m_angularSleepingThreshold(btScalar(1.f)),
+			m_additionalDamping(false),
+			m_additionalDampingFactor(btScalar(0.005)),
+			m_additionalLinearDampingThresholdSqr(btScalar(0.01)),
+			m_additionalAngularDampingThresholdSqr(btScalar(0.01)),
+			m_additionalAngularDampingFactor(btScalar(0.01))
+		{
+			m_startWorldTransform.setIdentity();
+		}
+	};
 
 	///btRigidBody constructor using construction info
 	btRigidBody(	const btRigidBodyConstructionInfo& constructionInfo);
@@ -495,7 +502,7 @@ public:
 		return (getBroadphaseProxy() != 0);
 	}
 
-	virtual bool checkCollideWithOverride(btCollisionObject* co);
+	virtual bool checkCollideWithOverride(const  btCollisionObject* co) const;
 
 	void addConstraintRef(btTypedConstraint* c);
 	void removeConstraintRef(btTypedConstraint* c);
@@ -520,106 +527,7 @@ public:
 		return m_rigidbodyFlags;
 	}
 
-	const btVector3& getDeltaLinearVelocity() const
-	{
-		return m_deltaLinearVelocity;
-	}
-
-	const btVector3& getDeltaAngularVelocity() const
-	{
-		return m_deltaAngularVelocity;
-	}
-
-	const btVector3& getPushVelocity() const 
-	{
-		return m_pushVelocity;
-	}
-
-	const btVector3& getTurnVelocity() const 
-	{
-		return m_turnVelocity;
-	}
-
-
-	////////////////////////////////////////////////
-	///some internal methods, don't use them
-		
-	btVector3& internalGetDeltaLinearVelocity()
-	{
-		return m_deltaLinearVelocity;
-	}
-
-	btVector3& internalGetDeltaAngularVelocity()
-	{
-		return m_deltaAngularVelocity;
-	}
-
-	const btVector3& internalGetAngularFactor() const
-	{
-		return m_angularFactor;
-	}
-
-	const btVector3& internalGetInvMass() const
-	{
-		return m_invMass;
-	}
-	
-	btVector3& internalGetPushVelocity()
-	{
-		return m_pushVelocity;
-	}
-
-	btVector3& internalGetTurnVelocity()
-	{
-		return m_turnVelocity;
-	}
-
-	SIMD_FORCE_INLINE void	internalGetVelocityInLocalPointObsolete(const btVector3& rel_pos, btVector3& velocity ) const
-	{
-		velocity = getLinearVelocity()+m_deltaLinearVelocity + (getAngularVelocity()+m_deltaAngularVelocity).cross(rel_pos);
-	}
-
-	SIMD_FORCE_INLINE void	internalGetAngularVelocity(btVector3& angVel) const
-	{
-		angVel = getAngularVelocity()+m_deltaAngularVelocity;
-	}
-
-
-	//Optimization for the iterative solver: avoid calculating constant terms involving inertia, normal, relative position
-	SIMD_FORCE_INLINE void internalApplyImpulse(const btVector3& linearComponent, const btVector3& angularComponent,const btScalar impulseMagnitude)
-	{
-		if (m_inverseMass)
-		{
-			m_deltaLinearVelocity += linearComponent*impulseMagnitude;
-			m_deltaAngularVelocity += angularComponent*(impulseMagnitude*m_angularFactor);
-		}
-	}
-
-	SIMD_FORCE_INLINE void internalApplyPushImpulse(const btVector3& linearComponent, const btVector3& angularComponent,btScalar impulseMagnitude)
-	{
-		if (m_inverseMass)
-		{
-			m_pushVelocity += linearComponent*impulseMagnitude;
-			m_turnVelocity += angularComponent*(impulseMagnitude*m_angularFactor);
-		}
-	}
-	
-	void	internalWritebackVelocity()
-	{
-		if (m_inverseMass)
-		{
-			setLinearVelocity(getLinearVelocity()+ m_deltaLinearVelocity);
-			setAngularVelocity(getAngularVelocity()+m_deltaAngularVelocity);
-			//m_deltaLinearVelocity.setZero();
-			//m_deltaAngularVelocity .setZero();
-			//m_originalBody->setCompanionId(-1);
-		}
-	}
-
-
-	void	internalWritebackVelocity(btScalar timeStep);
-
-	
+	btVector3 computeGyroscopicForce(btScalar maxGyroscopicForce) const;
 
 	///////////////////////////////////////////////
 

@@ -42,15 +42,15 @@ getNormalizedVector(const btVector3& v)
 /// -> Should integrate falling velocity manually and use that in stepDown()
 ///Support jumping
 ///Support ducking
-class btKinematicClosestNotMeRayResultCallback : public ClosestRayResultCallback
+class btKinematicClosestNotMeRayResultCallback : public btCollisionWorld::ClosestRayResultCallback
 {
 public:
-	btKinematicClosestNotMeRayResultCallback (btCollisionObject* me) : ClosestRayResultCallback(btVector3(0.0, 0.0, 0.0), btVector3(0.0, 0.0, 0.0))
+	btKinematicClosestNotMeRayResultCallback (btCollisionObject* me) : btCollisionWorld::ClosestRayResultCallback(btVector3(0.0, 0.0, 0.0), btVector3(0.0, 0.0, 0.0))
 	{
 		m_me = me;
 	}
 
-	virtual btScalar addSingleResult(LocalRayResult& rayResult,bool normalInWorldSpace)
+	virtual btScalar addSingleResult(btCollisionWorld::LocalRayResult& rayResult,bool normalInWorldSpace)
 	{
 		if (rayResult.m_collisionObject == m_me)
 			return 1.0;
@@ -61,18 +61,18 @@ protected:
 	btCollisionObject* m_me;
 };
 
-class btKinematicClosestNotMeConvexResultCallback : public ClosestConvexResultCallback
+class btKinematicClosestNotMeConvexResultCallback : public btCollisionWorld::ClosestConvexResultCallback
 {
 public:
 	btKinematicClosestNotMeConvexResultCallback (btCollisionObject* me, const btVector3& up, btScalar minSlopeDot)
-	: ClosestConvexResultCallback(btVector3(0.0, 0.0, 0.0), btVector3(0.0, 0.0, 0.0))
+	: btCollisionWorld::ClosestConvexResultCallback(btVector3(0.0, 0.0, 0.0), btVector3(0.0, 0.0, 0.0))
 	, m_me(me)
 	, m_up(up)
 	, m_minSlopeDot(minSlopeDot)
 	{
 	}
 
-	virtual btScalar addSingleResult(LocalConvexResult& convexResult,bool normalInWorldSpace)
+	virtual btScalar addSingleResult(btCollisionWorld::LocalConvexResult& convexResult,bool normalInWorldSpace)
 	{
 		if (convexResult.m_hitCollisionObject == m_me)
 			return btScalar(1.0);
@@ -160,7 +160,21 @@ btPairCachingGhostObject* btKinematicCharacterController::getGhostObject()
 
 bool btKinematicCharacterController::recoverFromPenetration ( btCollisionWorld* collisionWorld)
 {
+	// Here we must refresh the overlapping paircache as the penetrating movement itself or the
+	// previous recovery iteration might have used setWorldTransform and pushed us into an object
+	// that is not in the previous cache contents from the last timestep, as will happen if we
+	// are pushed into a new AABB overlap. Unhandled this means the next convex sweep gets stuck.
+	//
+	// Do this by calling the broadphase's setAabb with the moved AABB, this will update the broadphase
+	// paircache and the ghostobject's internal paircache at the same time.    /BW
 
+	btVector3 minAabb, maxAabb;
+	m_convexShape->getAabb(m_ghostObject->getWorldTransform(), minAabb,maxAabb);
+	collisionWorld->getBroadphase()->setAabb(m_ghostObject->getBroadphaseHandle(), 
+						 minAabb, 
+						 maxAabb, 
+						 collisionWorld->getDispatcher());
+						 
 	bool penetration = false;
 
 	collisionWorld->getDispatcher()->dispatchAllCollisionPairs(m_ghostObject->getOverlappingPairCache(), collisionWorld->getDispatchInfo(), collisionWorld->getDispatcher());

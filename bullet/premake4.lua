@@ -2,8 +2,14 @@ solution "BulletSolution"
 
 language "C++"
 configurations {"Release", "Debug"}
+
+defines {
+    "NOMINMAX",
+}
+
 configuration "Release"
 do
+    defines { "NDEBUG" }
     flags {
         "Optimize",
         --"StaticRuntime",
@@ -14,6 +20,7 @@ end
 
 configuration "Debug"
 do
+    defines { "DEBUG" }
     flags {
         "Symbols",
         --"StaticRuntime" ,

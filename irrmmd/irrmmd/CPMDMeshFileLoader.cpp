@@ -108,7 +108,7 @@ static btVector3 getBonePosition(scene::IJoint *joint)
 }
 
 // 剛体初期化パラメータ
-static btRigidBodyConstructionInfo 
+static btRigidBody::btRigidBodyConstructionInfo 
 createRigidBodyInfo(const pmd::RigidBody &rb, btCollisionShape *shape)
 {
 	// 質量
@@ -125,7 +125,7 @@ createRigidBodyInfo(const pmd::RigidBody &rb, btCollisionShape *shape)
 	}
 
 	// 剛体パラメータ
-	btRigidBodyConstructionInfo info(
+	btRigidBody::btRigidBodyConstructionInfo info(
 			mass, 0, shape, localInertia);
 	// 移動減
 	info.m_linearDamping  = rb.posAttenuation;
@@ -406,7 +406,7 @@ static IAnimatedMesh* buildMesh(
 		btTransform centerOfMass=boneTransform * rigidOffsetInBone;
 
 		// 剛体情報
-		btRigidBodyConstructionInfo info
+		btRigidBody::btRigidBodyConstructionInfo info
 			=createRigidBodyInfo(rb, shape->getBulletShape());
 
 		// 剛体作成

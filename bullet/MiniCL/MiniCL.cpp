@@ -32,6 +32,7 @@ subject to the following restrictions:
 #include "MiniCLTask/MiniCLTask.h"
 #include "LinearMath/btMinMax.h"
 #include <stdio.h>
+#include <stddef.h>
 
 //#define DEBUG_MINICL_KERNELS 1
 
@@ -73,6 +74,20 @@ CL_API_ENTRY cl_int CL_API_CALL clGetPlatformInfo(
 	}
 	switch(param_name)
 	{
+	case CL_PLATFORM_VERSION:
+		{
+			if(param_value_size < (strlen(spDriverVersion) + 1))
+			{
+				return CL_INVALID_VALUE; 
+			}
+			strcpy((char*)param_value, spDriverVersion);
+			if(param_value_size_ret != NULL)
+			{
+				*param_value_size_ret = strlen(spDriverVersion) + 1;
+			}
+			break;
+		}
+		case CL_PLATFORM_NAME:
 		case CL_PLATFORM_VENDOR	:
 			if(param_value_size < (strlen(spPlatformID) + 1))
 			{
@@ -114,7 +129,7 @@ CL_API_ENTRY cl_int CL_API_CALL clGetDeviceInfo(
 				sprintf((char*)param_value,"%s",cpuName);
 			} else
 			{
-				printf("error: param_value_size should be at least %d, but it is %d\n",nameLen,param_value_size);
+				printf("error: param_value_size should be at least %d, but it is %zu\n",nameLen,param_value_size);
 				return CL_INVALID_VALUE; 
 			}
 			break;
@@ -127,7 +142,7 @@ CL_API_ENTRY cl_int CL_API_CALL clGetDeviceInfo(
 				*deviceType = CL_DEVICE_TYPE_CPU;
 			} else
 			{
-				printf("error: param_value_size should be at least %d\n",sizeof(cl_device_type));
+				printf("error: param_value_size should be at least %zu\n",sizeof(cl_device_type));
 				return CL_INVALID_VALUE; 
 			}
 			break;
@@ -140,7 +155,7 @@ CL_API_ENTRY cl_int CL_API_CALL clGetDeviceInfo(
 				*numUnits= 4;
 			} else
 			{
-				printf("error: param_value_size should be at least %d\n",sizeof(cl_uint));
+				printf("error: param_value_size should be at least %zu\n",sizeof(cl_uint));
 				return CL_INVALID_VALUE; 
 			}
 
@@ -158,7 +173,7 @@ CL_API_ENTRY cl_int CL_API_CALL clGetDeviceInfo(
 				workItemSize[2] = 16;
 			} else
 			{
-				printf("error: param_value_size should be at least %d\n",sizeof(cl_uint));
+				printf("error: param_value_size should be at least %zu\n",sizeof(cl_uint));
 				return CL_INVALID_VALUE; 
 			}
 			break;
@@ -464,7 +479,7 @@ static void* localBufMalloc(int size)
 	if((sLocalBufUsed + size16) > LOCAL_BUF_SIZE)
 	{ // reset
 		spLocalBufCurr = sLocalMemBuf;
-		while((unsigned long)spLocalBufCurr & 0x0F) spLocalBufCurr++; // align to 16 bytes
+		while((size_t)spLocalBufCurr & 0x0F) spLocalBufCurr++; // align to 16 bytes
 		sLocalBufUsed = 0;
 	}
 	void* ret = spLocalBufCurr;
@@ -520,13 +535,15 @@ CL_API_ENTRY cl_kernel CL_API_CALL clCreateKernel(cl_program       program ,
                cl_int *         errcode_ret ) CL_API_SUFFIX__VERSION_1_0
 {
 	MiniCLTaskScheduler* scheduler = (MiniCLTaskScheduler*) program;
-	MiniCLKernel* kernel = new MiniCLKernel();
 	int nameLen = strlen(kernel_name);
 	if(nameLen >= MINI_CL_MAX_KERNEL_NAME)
 	{
 		*errcode_ret = CL_INVALID_KERNEL_NAME;
 		return NULL;
 	}
+
+	MiniCLKernel* kernel = new MiniCLKernel();
+
 	strcpy(kernel->m_name, kernel_name);
 	kernel->m_numArgs = 0;
 
@@ -542,6 +559,7 @@ CL_API_ENTRY cl_kernel CL_API_CALL clCreateKernel(cl_program       program ,
 	if(kernel->registerSelf() == NULL)
 	{
 		*errcode_ret = CL_INVALID_KERNEL_NAME;
+		delete kernel;
 		return NULL;
 	}
 	else
@@ -632,7 +650,9 @@ extern CL_API_ENTRY cl_int CL_API_CALL clGetContextInfo(cl_context         /* co
 	return 0;
 }
 
-CL_API_ENTRY cl_context CL_API_CALL clCreateContextFromType(cl_context_properties * /* properties */,
+
+
+CL_API_ENTRY cl_context CL_API_CALL clCreateContextFromType(const cl_context_properties * /* properties */,
                         cl_device_type           device_type ,
                         void (*pfn_notify)(const char *, const void *, size_t, void *) /* pfn_notify */,
                         void *                  /* user_data */,
@@ -690,6 +710,28 @@ CL_API_ENTRY cl_context CL_API_CALL clCreateContextFromType(cl_context_propertie
 
 	*errcode_ret = 0;
 	return (cl_context)scheduler;
+}
+
+CL_API_ENTRY cl_int CL_API_CALL
+clGetDeviceIDs(cl_platform_id   /* platform */,
+               cl_device_type   /* device_type */, 
+               cl_uint          /* num_entries */, 
+               cl_device_id *   /* devices */, 
+               cl_uint *        /* num_devices */) CL_API_SUFFIX__VERSION_1_0
+{
+	return 0;
+}
+
+CL_API_ENTRY cl_context CL_API_CALL
+clCreateContext(const cl_context_properties *  properties ,
+                cl_uint                        num_devices ,
+                const cl_device_id *           devices ,
+                 void (*pfn_notify)(const char *, const void *, size_t, void *),
+                void *                         user_data ,
+                cl_int *                       errcode_ret ) CL_API_SUFFIX__VERSION_1_0
+{
+	
+	return	clCreateContextFromType(properties,CL_DEVICE_TYPE_ALL,pfn_notify,user_data,errcode_ret);
 }
 
 CL_API_ENTRY cl_int CL_API_CALL clReleaseContext(cl_context  context ) CL_API_SUFFIX__VERSION_1_0

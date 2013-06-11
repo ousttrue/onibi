@@ -193,9 +193,9 @@ struct btSoftSingleRayCallback : public btBroadphaseRayCallback
 	btVector3	m_hitNormal;
 
 	const btSoftRigidDynamicsWorld*	m_world;
-	RayResultCallback&	m_resultCallback;
+	btCollisionWorld::RayResultCallback&	m_resultCallback;
 
-	btSoftSingleRayCallback(const btVector3& rayFromWorld,const btVector3& rayToWorld,const btSoftRigidDynamicsWorld* world,RayResultCallback& resultCallback)
+	btSoftSingleRayCallback(const btVector3& rayFromWorld,const btVector3& rayToWorld,const btSoftRigidDynamicsWorld* world,btCollisionWorld::RayResultCallback& resultCallback)
 	:m_rayFromWorld(rayFromWorld),
 	m_rayToWorld(rayToWorld),
 	m_world(world),
@@ -296,7 +296,7 @@ void	btSoftRigidDynamicsWorld::rayTestSingle(const btTransform& rayFromTrans,con
 				if (softResult.fraction<= resultCallback.m_closestHitFraction)
 				{
 
-					LocalShapeInfo shapeInfo;
+					btCollisionWorld::LocalShapeInfo shapeInfo;
 					shapeInfo.m_shapePart = 0;
 					shapeInfo.m_triangleIndex = softResult.index;
 					// get the normal
@@ -313,7 +313,7 @@ void	btSoftRigidDynamicsWorld::rayTestSingle(const btTransform& rayFromTrans,con
 						}
 					}
 	
-					LocalRayResult rayResult
+					btCollisionWorld::LocalRayResult rayResult
 						(collisionObject,
 						 &shapeInfo,
 						 normal,
@@ -352,6 +352,8 @@ void	btSoftRigidDynamicsWorld::serialize(btSerializer* serializer)
 {
 
 	serializer->startSerialization();
+
+	serializeDynamicsWorldInfo( serializer);
 
 	serializeSoftBodies(serializer);
 

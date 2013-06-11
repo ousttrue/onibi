@@ -59,7 +59,7 @@ void IRigidBody::draw()
 // CDefaultRigidBody
 ///////////////////////////////////////////////////////////////////////////////
 CDefaultRigidBody::CDefaultRigidBody(const std::string &name, IShape *shape, 
-		btRigidBodyConstructionInfo &info,
+		btRigidBody::btRigidBodyConstructionInfo &info,
 		const btTransform &centerOfMass)
 : Name(name)
 {
@@ -94,7 +94,7 @@ void CDefaultRigidBody::draw()
 // CKinematicsRigidBody
 ///////////////////////////////////////////////////////////////////////////////
 CKinematicsRigidBody::CKinematicsRigidBody(const std::string &name, IShape *shape, 
-		btRigidBodyConstructionInfo &info,
+		btRigidBody::btRigidBodyConstructionInfo &info,
 		const btTransform &centerOfMass,
 		scene::IJoint *bone, const btTransform &offsetInBone)
 : Name(name), StartPosition(centerOfMass), Bone(bone), OffsetInBone(offsetInBone), isInitialized(false)
@@ -162,7 +162,7 @@ void CKinematicsRigidBody::draw()
 ///////////////////////////////////////////////////////////////////////////////
 CPhysicsBoneRigidBody::CPhysicsBoneRigidBody(
 		const std::string &name, IShape *shape,
-			btRigidBodyConstructionInfo &info,
+			btRigidBody::btRigidBodyConstructionInfo &info,
 			const btTransform &centerOfMass,
 			scene::IJoint *bone,
 			const btTransform &offsetInBone
@@ -238,7 +238,7 @@ void CPhysicsBoneRigidBody::syncBone()
 ///////////////////////////////////////////////////////////////////////////////
 CKinematicsMoveAndPhysicsRotateRigidBody::CKinematicsMoveAndPhysicsRotateRigidBody(
 		const std::string &name, IShape *shape,
-			btRigidBodyConstructionInfo &info,
+			btRigidBody::btRigidBodyConstructionInfo &info,
 			const btTransform &centerOfMass,
 			scene::IJoint *bone,
 			const btTransform &offsetInBone

@@ -80,7 +80,7 @@ void CWorld::syncBone()
 
 IRigidBody *CWorld::createKinematicsMoveRigidBody(
 		const std::string &name, IShape *shape,
-		btRigidBodyConstructionInfo &info,
+		btRigidBody::btRigidBodyConstructionInfo &info,
 		const btTransform &centerOfMass,
 		scene::IJoint *bone, const btTransform &offsetInBone)
 {
@@ -89,7 +89,7 @@ IRigidBody *CWorld::createKinematicsMoveRigidBody(
 
 IRigidBody *CWorld::createPhysicsBoveRigidBody(
 		const std::string &name, IShape *shape,
-		btRigidBodyConstructionInfo &info,
+		btRigidBody::btRigidBodyConstructionInfo &info,
 		const btTransform &centerOfMass,
 		scene::IJoint *bone, const btTransform &offsetInBone
 		)
@@ -100,7 +100,7 @@ IRigidBody *CWorld::createPhysicsBoveRigidBody(
 
 IRigidBody *CWorld::createKinematicsMoveAndPhysicsRotateRigidBody(
 		const std::string &name, IShape *shape,
-		btRigidBodyConstructionInfo &info,
+		btRigidBody::btRigidBodyConstructionInfo &info,
 		const btTransform &centerOfMass,
 		scene::IJoint *bone, const btTransform &offsetInBone
 		)

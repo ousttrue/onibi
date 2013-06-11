@@ -109,7 +109,7 @@ public:
 	bool                Is_Root(void) { return (CurrentParent->Get_Parent() == 0); }
 
 	void				Enter_Child( int index );		// Make the given child the new parent
-	//void				Enter_Largest_Child( void );	// Make the largest child the new parent
+	void				Enter_Largest_Child( void );	// Make the largest child the new parent
 	void				Enter_Parent( void );			// Make the current parent's parent the new parent
 
 	// Access the current child

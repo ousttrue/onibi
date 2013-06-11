@@ -1,11 +1,11 @@
-project "BulletDynamics"
-
-language "C++"
-kind "StaticLib"
-includedirs {
-    "..",
-}
-files {
-    "**.cpp",
-    "**.h"
-}
+	project "BulletDynamics"
+		
+	kind "StaticLib"
+	targetdir "../../lib"
+	includedirs {
+		"..",
+	}
+	files {
+		"**.cpp",
+		"**.h"
+	}

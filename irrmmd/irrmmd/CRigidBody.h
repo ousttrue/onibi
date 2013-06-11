@@ -29,7 +29,7 @@ class CDefaultRigidBody : public IRigidBody
 {
 public:
 	CDefaultRigidBody(const std::string &name, IShape *shape, 
-			btRigidBodyConstructionInfo &info,
+			btRigidBody::btRigidBodyConstructionInfo &info,
 			const btTransform &centerOfMass);
 	virtual ~CDefaultRigidBody();
 	virtual btRigidBody* getBulletRigidBody()const{ return RigidBody; }
@@ -50,7 +50,7 @@ class CKinematicsRigidBody : public IRigidBody, btMotionState
 {
 public:
 	CKinematicsRigidBody(const std::string &name, IShape *shape,
-			btRigidBodyConstructionInfo &info,
+			btRigidBody::btRigidBodyConstructionInfo &info,
 			const btTransform &centerOfMass,
 			scene::IJoint *bone,
 			const btTransform &offsetInBone
@@ -86,7 +86,7 @@ class CPhysicsBoneRigidBody : public IRigidBody, btMotionState
 {
 public:
 	CPhysicsBoneRigidBody(const std::string &name, IShape *shape,
-			btRigidBodyConstructionInfo &info,
+			btRigidBody::btRigidBodyConstructionInfo &info,
 			const btTransform &centerOfMass,
 			scene::IJoint *bone,
 			const btTransform &offsetInBone
@@ -121,7 +121,7 @@ class CKinematicsMoveAndPhysicsRotateRigidBody : public IRigidBody, btMotionStat
 public:
 	CKinematicsMoveAndPhysicsRotateRigidBody(const std::string &name, 
 			IShape *shape,
-			btRigidBodyConstructionInfo &info,
+			btRigidBody::btRigidBodyConstructionInfo &info,
 			const btTransform &centerOfMass,
 			scene::IJoint *bone,
 			const btTransform &offsetInBone

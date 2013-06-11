@@ -20,7 +20,7 @@ subject to the following restrictions:
 #include "btSoftBodySolverVertexBuffer_DX11.h"
 #include "BulletSoftBody/btSoftBody.h"
 #include "BulletCollision/CollisionShapes/btCapsuleShape.h"
-
+#include <stdio.h> //printf
 #define MSTRINGIFY(A) #A
 static char* PrepareLinksHLSLString = 
 #include "HLSL/PrepareLinks.hlsl"
@@ -48,7 +48,7 @@ static char* ComputeBoundsHLSLString =
 #include "HLSL/ComputeBounds.hlsl"
 static char* SolveCollisionsAndUpdateVelocitiesHLSLString =
 #include "HLSL/SolveCollisionsAndUpdateVelocities.hlsl"
-
+#include "BulletCollision/CollisionDispatch/btCollisionObjectWrapper.h"
 
 btSoftBodyLinkDataDX11::btSoftBodyLinkDataDX11( ID3D11Device *d3dDevice, ID3D11DeviceContext *d3dDeviceContext ) : 
 		m_dx11Links( d3dDevice, d3dDeviceContext, &m_links, false ),
@@ -308,18 +308,42 @@ bool btSoftBodyVertexDataDX11::moveToAccelerator()
 	return success;
 }
 
-bool btSoftBodyVertexDataDX11::moveFromAccelerator()
+bool btSoftBodyVertexDataDX11::moveFromAccelerator(bool bCopy, bool bCopyMinimum)
 {
 	bool success = true;
-	success = success && m_dx11ClothIdentifier.moveFromGPU();
-	success = success && m_dx11VertexPosition.moveFromGPU();
-	success = success && m_dx11VertexPreviousPosition.moveFromGPU();
-	success = success && m_dx11VertexVelocity.moveFromGPU();
-	success = success && m_dx11VertexForceAccumulator.moveFromGPU();
-	success = success && m_dx11VertexNormal.moveFromGPU();
-	success = success && m_dx11VertexInverseMass.moveFromGPU();
-	success = success && m_dx11VertexArea.moveFromGPU();
-	success = success && m_dx11VertexTriangleCount.moveFromGPU();
+
+	if (!bCopy)
+	{
+		success = success && m_dx11ClothIdentifier.moveFromGPU();
+		success = success && m_dx11VertexPosition.moveFromGPU();
+		success = success && m_dx11VertexPreviousPosition.moveFromGPU();
+		success = success && m_dx11VertexVelocity.moveFromGPU();
+		success = success && m_dx11VertexForceAccumulator.moveFromGPU();
+		success = success && m_dx11VertexNormal.moveFromGPU();
+		success = success && m_dx11VertexInverseMass.moveFromGPU();
+		success = success && m_dx11VertexArea.moveFromGPU();
+		success = success && m_dx11VertexTriangleCount.moveFromGPU();
+	}
+	else
+	{
+		if (bCopyMinimum)
+		{
+			success = success && m_dx11VertexPosition.copyFromGPU();
+			success = success && m_dx11VertexNormal.copyFromGPU();
+		}
+		else
+		{
+			success = success && m_dx11ClothIdentifier.copyFromGPU();
+			success = success && m_dx11VertexPosition.copyFromGPU();
+			success = success && m_dx11VertexPreviousPosition.copyFromGPU();
+			success = success && m_dx11VertexVelocity.copyFromGPU();
+			success = success && m_dx11VertexForceAccumulator.copyFromGPU();
+			success = success && m_dx11VertexNormal.copyFromGPU();
+			success = success && m_dx11VertexInverseMass.copyFromGPU();
+			success = success && m_dx11VertexArea.copyFromGPU();
+			success = success && m_dx11VertexTriangleCount.copyFromGPU();
+		}
+	}
 
 	if( success )
 		m_onGPU = true;
@@ -619,10 +643,10 @@ void btDX11SoftBodySolver::releaseKernels()
 }
 
 
-void btDX11SoftBodySolver::copyBackToSoftBodies()
+void btDX11SoftBodySolver::copyBackToSoftBodies(bool bMove)
 {
 	// Move the vertex data back to the host first
-	m_vertexData.moveFromAccelerator();
+	m_vertexData.moveFromAccelerator(!bMove);
 
 	// Loop over soft bodies, copying all the vertex positions back for each body in turn
 	for( int softBodyIndex = 0; softBodyIndex < m_softBodySet.size(); ++softBodyIndex )
@@ -1221,7 +1245,7 @@ void btDX11SoftBodySolver::prepareCollisionConstraints()
 	{
 		public:
 
-		bool operator() ( const CollisionShapeDescription& a, const CollisionShapeDescription& b )
+		bool operator() ( const CollisionShapeDescription& a, const CollisionShapeDescription& b ) const
 		{
 			return ( a.softBodyIdentifier < b.softBodyIdentifier );
 		}
@@ -2138,14 +2162,14 @@ void btDX11SoftBodySolver::processCollision( btSoftBody*, btSoftBody* )
 }
 
 // Add the collision object to the set to deal with for a particular soft body
-void btDX11SoftBodySolver::processCollision( btSoftBody *softBody, btCollisionObject* collisionObject )
+void btDX11SoftBodySolver::processCollision( btSoftBody *softBody, const btCollisionObjectWrapper* collisionObject )
 {
 	int softBodyIndex = findSoftBodyIndex( softBody );
 
 	if( softBodyIndex >= 0 )
 	{
-		btCollisionShape *collisionShape = collisionObject->getCollisionShape();
-		float friction = collisionObject->getFriction();
+		const btCollisionShape *collisionShape = collisionObject->getCollisionShape();
+		float friction = collisionObject->getCollisionObject()->getFriction();
 		int shapeType = collisionShape->getShapeType();
 		if( shapeType == CAPSULE_SHAPE_PROXYTYPE )
 		{
@@ -2155,18 +2179,20 @@ void btDX11SoftBodySolver::processCollision( btSoftBody *softBody, btCollisionOb
 			newCollisionShapeDescription.collisionShapeType = shapeType;
 			// TODO: May need to transpose this matrix either here or in HLSL
 			newCollisionShapeDescription.shapeTransform = toTransform3(collisionObject->getWorldTransform());
-			btCapsuleShape *capsule = static_cast<btCapsuleShape*>( collisionShape );
+			const btCapsuleShape *capsule = static_cast<const btCapsuleShape*>( collisionShape );
 			newCollisionShapeDescription.radius = capsule->getRadius();
 			newCollisionShapeDescription.halfHeight = capsule->getHalfHeight();
 			newCollisionShapeDescription.margin = capsule->getMargin();
 			newCollisionShapeDescription.friction = friction;
-			btRigidBody* body = static_cast< btRigidBody* >( collisionObject );
+			const btRigidBody* body = static_cast< const btRigidBody* >( collisionObject->getCollisionObject() );
 			newCollisionShapeDescription.linearVelocity = toVector3(body->getLinearVelocity());
 			newCollisionShapeDescription.angularVelocity = toVector3(body->getAngularVelocity());
 			m_collisionObjectDetails.push_back( newCollisionShapeDescription );
 
 		} else {
-			btAssert("Unsupported collision shape type\n");
+#ifdef _DEBUG
+			printf("Unsupported collision shape type\n");
+#endif
 		}
 	} else {
 		btAssert("Unknown soft body");

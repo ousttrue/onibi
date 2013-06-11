@@ -99,7 +99,7 @@ void btPairCachingGhostObject::removeOverlappingObjectInternal(btBroadphaseProxy
 }
 
 
-void	btGhostObject::convexSweepTest(const btConvexShape* castShape, const btTransform& convexFromWorld, const btTransform& convexToWorld, ConvexResultCallback& resultCallback, btScalar allowedCcdPenetration) const
+void	btGhostObject::convexSweepTest(const btConvexShape* castShape, const btTransform& convexFromWorld, const btTransform& convexToWorld, btCollisionWorld::ConvexResultCallback& resultCallback, btScalar allowedCcdPenetration) const
 {
 	btTransform	convexFromTrans,convexToTrans;
 	convexFromTrans = convexFromWorld;
@@ -143,7 +143,7 @@ void	btGhostObject::convexSweepTest(const btConvexShape* castShape, const btTran
 
 }
 
-void	btGhostObject::rayTest(const btVector3& rayFromWorld, const btVector3& rayToWorld, RayResultCallback& resultCallback) const
+void	btGhostObject::rayTest(const btVector3& rayFromWorld, const btVector3& rayToWorld, btCollisionWorld::RayResultCallback& resultCallback) const
 {
 	btTransform rayFromTrans;
 	rayFromTrans.setIdentity();

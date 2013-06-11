@@ -45,18 +45,18 @@ namespace bullet {
 
 		IRigidBody *createKinematicsMoveRigidBody(
 				const std::string &name, IShape *shape,
-				btRigidBodyConstructionInfo &info,
+				btRigidBody::btRigidBodyConstructionInfo &info,
 				const btTransform &centerOfMass,
 				scene::IJoint *bone, const btTransform &offsetInBone);
 		IRigidBody *createPhysicsBoveRigidBody(
 				const std::string &name, IShape *shape,
-				btRigidBodyConstructionInfo &info,
+				btRigidBody::btRigidBodyConstructionInfo &info,
 				const btTransform &centerOfMass,
 				scene::IJoint *bone, const btTransform &offsetInBone
 				);
 		IRigidBody *createKinematicsMoveAndPhysicsRotateRigidBody(
 				const std::string &name, IShape *shape,
-				btRigidBodyConstructionInfo &info,
+				btRigidBody::btRigidBodyConstructionInfo &info,
 				const btTransform &centerOfMass,
 				scene::IJoint *bone, const btTransform &offsetInBone
 				);

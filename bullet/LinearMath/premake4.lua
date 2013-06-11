@@ -1,11 +1,11 @@
-project "LinearMath"
-
-language "C++"
-kind "StaticLib"
-includedirs {
-    "..",
-}
-files {
-    "**.cpp",
-    "**.h"
-}
+	project "LinearMath"
+		
+	kind "StaticLib"
+	targetdir "../../lib"
+	includedirs {
+		"..",
+	}
+	files {
+		"**.cpp",
+		"**.h"
+	}

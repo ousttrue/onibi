@@ -40,6 +40,7 @@ configuration "vs*"
 do
     defines {
         "_USE_MATH_DEFINES",
+        "NOMINMAX",
     }
 end
 
@@ -47,6 +48,7 @@ configuration "windows"
 do
     defines {
         "WIN32",
+        "_WIN32",
         "_WINDOWS",
     }
 end

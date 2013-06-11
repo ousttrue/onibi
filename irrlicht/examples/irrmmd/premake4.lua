@@ -8,9 +8,13 @@ kind "ConsoleApp"
 --kind "SharedLib"
 --kind "StaticLib"
 language "C++"
-files { "*.h", "*.cpp" }
+files { 
+    "*.h", "*.cpp",
+    "../../../bullet/LinearMath/btVector3.cpp",
+}
 flags {
 	"NoIncrementalLink",
+    "FloatFast",
 }
 buildoptions {
 	"/wd4996",
