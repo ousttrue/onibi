@@ -4,10 +4,8 @@
 | Irrlichtが独語で鬼火らしいので直訳。
 | IrrlichtとBulletを中心に3D用途で使うライブラリをMinGWでビルドしやすいようにpremake4を使って編成しました。
 
-* Irrlicht-1.72(& IrrlichtML)
-* Irrlichtのswigによるpythonラッパ
-* bullet-2.79
-* bulletのswigによるpythonラッパ
+* Irrlicht-1.8
+* bullet-2.81
 * freetype
 * glew
 * freeglut
@@ -26,6 +24,7 @@ ToDo
 ====
 * msgpack-rpcを持ってくる  
 * msgpack-rpc経由でシーンを構築するUIをなんか作る(pyQTとか？)
+* IrrlichtMLのfreetypeフォントを再マージする？
 
 更新
 ====
