@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2009 Nikolaus Gebhardt
+// Copyright (C) 2002-2012 Nikolaus Gebhardt
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
@@ -29,14 +29,14 @@ namespace irr
 
 #if defined(_IRR_COMPILE_WITH_X11_DEVICE_)
 // constructor  linux
-COSOperator::COSOperator(const c8* osversion, CIrrDeviceLinux* device)
-: IrrDeviceLinux(device)
+	COSOperator::COSOperator(const core::stringc& osVersion, CIrrDeviceLinux* device)
+: OperatingSystem(osVersion), IrrDeviceLinux(device)
 {
 }
 #endif
 
 // constructor
-COSOperator::COSOperator(const c8* osVersion) : OperatingSystem(osVersion)
+COSOperator::COSOperator(const core::stringc& osVersion) : OperatingSystem(osVersion)
 {
 	#ifdef _DEBUG
 	setDebugName("COSOperator");
@@ -45,45 +45,13 @@ COSOperator::COSOperator(const c8* osVersion) : OperatingSystem(osVersion)
 
 
 //! returns the current operating system version as string.
-const wchar_t* COSOperator::getOperationSystemVersion() const
+const core::stringc& COSOperator::getOperatingSystemVersion() const
 {
-	return OperatingSystem.c_str();
+	return OperatingSystem;
 }
 
 
 //! copies text to the clipboard
-#if defined(_IRR_IMPROVE_UNICODE)
-void COSOperator::copyToClipboard(const wchar_t* text) const
-{
-	if (wcslen(text)==0)
-		return;
-
-// Windows version
-#if defined(_IRR_XBOX_PLATFORM_)
-#elif defined(_IRR_WINDOWS_API_)
-	if (!OpenClipboard(NULL) || text == 0)
-		return;
-
-	EmptyClipboard();
-
-	HGLOBAL clipbuffer;
-	wchar_t * buffer;
-
-	clipbuffer = GlobalAlloc(GMEM_DDESHARE, wcslen(text)*sizeof(wchar_t) + sizeof(wchar_t));
-	buffer = (wchar_t*)GlobalLock(clipbuffer);
-
-	wcscpy(buffer, text);
-
-	GlobalUnlock(clipbuffer);
-	SetClipboardData(CF_UNICODETEXT, clipbuffer); //Windwos converts between CF_UNICODETEXT and CF_TEXT automatically.
-	CloseClipboard();
-
-#else
-
-#endif
-}
-
-#else
 void COSOperator::copyToClipboard(const c8* text) const
 {
 	if (strlen(text)==0)
@@ -121,35 +89,10 @@ void COSOperator::copyToClipboard(const c8* text) const
 
 #endif
 }
-#endif
 
 
 //! gets text from the clipboard
 //! \return Returns 0 if no string is in there.
-#if defined(_IRR_IMPROVE_UNICODE)
-const wchar_t* COSOperator::getTextFromClipboard() const
-{
-#if defined(_IRR_XBOX_PLATFORM_)
-		return 0;
-#elif defined(_IRR_WINDOWS_API_)
-	if (!OpenClipboard(NULL))
-		return 0;
-
-	wchar_t * buffer = 0;
-
-	HANDLE hData = GetClipboardData( CF_UNICODETEXT ); //Windwos converts between CF_UNICODETEXT and CF_TEXT automatically.
-	buffer = (wchar_t*)GlobalLock( hData );
-	GlobalUnlock( hData );
-	CloseClipboard();
-	return buffer;
-
-#else
-
-	return 0;
-#endif
-}
-
-#else
 const c8* COSOperator::getTextFromClipboard() const
 {
 #if defined(_IRR_XBOX_PLATFORM_)
@@ -179,7 +122,6 @@ const c8* COSOperator::getTextFromClipboard() const
 	return 0;
 #endif
 }
-#endif
 
 
 bool COSOperator::getProcessorSpeedMHz(u32* MHz) const

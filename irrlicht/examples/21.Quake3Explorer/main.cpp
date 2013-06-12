@@ -1,6 +1,6 @@
 /** Example 021 Quake3 Explorer
 
-> This Tutorial shows how to load different Quake 3 maps.
+This Tutorial shows how to load different Quake 3 maps.
 
 Features:
 	- Load BSP Archives at Runtime from the menu
@@ -9,19 +9,20 @@ Features:
 	- Adjust GammaLevel at runtime
 	- Create SceneNodes for the Shaders
 	- Load EntityList and create Entity SceneNodes
-	- Create Players with Weapons and with Collison Respsone
+	- Create Players with Weapons and with Collision Response
 	- Play music
 
 You can download the Quake III Arena demo ( copyright id software )
 at the following location:
 ftp://ftp.idsoftware.com/idstuff/quake3/win32/q3ademo.exe
 
-This file is copyright 2006-2010 Burningwater, Thomas Alten
+Copyright 2006-2011 Burningwater, Thomas Alten
 */
 
+#include "driverChoice.h"
+#include <irrlicht.h>
 #include "q3factory.h"
 #include "sound.h"
-#include "driverChoice.h"
 
 /*
 	Game Data is used to hold Data which is needed to drive the game
@@ -582,13 +583,12 @@ CQuake3EventHandler::~CQuake3EventHandler ()
 
 
 // create runtime textures smog, fog
-void CQuake3EventHandler::createTextures ()
+void CQuake3EventHandler::createTextures()
 {
 	IVideoDriver * driver = Game->Device->getVideoDriver();
 
-	dimension2du dim ( 64, 64 );
+	dimension2du dim(64, 64);
 
-	video::ITexture* texture;
 	video::IImage* image;
 	u32 i;
 	u32 x;
@@ -608,7 +608,7 @@ void CQuake3EventHandler::createTextures ()
 		}
 		image->unlock();
 		snprintf ( buf, 64, "smoke_%02d", i );
-		texture = driver->addTexture( buf, image );
+		driver->addTexture( buf, image );
 		image->drop ();
 	}
 
@@ -627,10 +627,9 @@ void CQuake3EventHandler::createTextures ()
 		}
 		image->unlock();
 		snprintf ( buf, 64, "fog_%02d", i );
-		texture = driver->addTexture( buf, image );
+		driver->addTexture( buf, image );
 		image->drop ();
 	}
-
 }
 
 
@@ -652,6 +651,8 @@ void CQuake3EventHandler::CreateGUI()
 	env->getSkin()->setColor ( EGDC_BUTTON_TEXT, video::SColor(240,0xAA,0xAA,0xAA) );
 	env->getSkin()->setColor ( EGDC_3D_HIGH_LIGHT, video::SColor(240,0x22,0x22,0x22) );
 	env->getSkin()->setColor ( EGDC_3D_FACE, video::SColor(240,0x44,0x44,0x44) );
+	env->getSkin()->setColor ( EGDC_EDITABLE, video::SColor(240,0x44,0x44,0x44) );
+	env->getSkin()->setColor ( EGDC_FOCUSED_EDITABLE, video::SColor(240,0x54,0x54,0x54) );
 	env->getSkin()->setColor ( EGDC_WINDOW, video::SColor(240,0x66,0x66,0x66) );
 
 	// minimal gui size 800x600
@@ -805,7 +806,7 @@ void CQuake3EventHandler::CreateGUI()
 	gui.SceneTree = env->addTreeView(	rect<s32>( dim.Width - 400, dim.Height - 380, dim.Width - 5, dim.Height - 40 ),
 									gui.Window, -1, true, true, false );
 	gui.SceneTree->setToolTipText ( L"Show the current Scenegraph" );
-	gui.SceneTree->getRoot()->clearChilds();
+	gui.SceneTree->getRoot()->clearChildren();
 	addSceneTreeItem ( Game->Device->getSceneManager()->getRootSceneNode(), gui.SceneTree->getRoot() );
 
 
@@ -828,7 +829,7 @@ void CQuake3EventHandler::CreateGUI()
 
 
 /*
-	Add an Archive to the FileSystems und updates the GUI
+	Add an Archive to the FileSystems and updates the GUI
 */
 void CQuake3EventHandler::AddArchive ( const path& archiveName )
 {
@@ -1151,14 +1152,14 @@ void CQuake3EventHandler::addSceneTreeItem( ISceneNode * parent, IGUITreeViewNod
 
 		if ( imageIndex < 0 )
 		{
-			snwprintf ( msg, 128, L"%hs,%hs",
+			swprintf ( msg, 128, L"%hs,%hs",
 				Game->Device->getSceneManager ()->getSceneNodeTypeName ( (*it)->getType () ),
 				(*it)->getName()
 				);
 		}
 		else
 		{
-			snwprintf ( msg, 128, L"%hs",(*it)->getName() );
+			swprintf ( msg, 128, L"%hs",(*it)->getName() );
 		}
 
 		node = nodeParent->addChildBack( msg, 0, imageIndex );
@@ -1168,7 +1169,7 @@ void CQuake3EventHandler::addSceneTreeItem( ISceneNode * parent, IGUITreeViewNod
 		for (; ait != (*it)->getAnimators().end(); ++ait)
 		{
 			imageIndex = -1;
-			snwprintf ( msg, 128, L"%hs",
+			swprintf ( msg, 128, L"%hs",
 				Game->Device->getSceneManager ()->getAnimatorTypeName ( (*ait)->getType () )
 				);
 
@@ -1288,7 +1289,7 @@ void CQuake3EventHandler::SetGUIActive( s32 command)
 			gui.SceneTree && Game->Device->getGUIEnvironment()->getFocus() != gui.SceneTree
 		)
 	{
-		gui.SceneTree->getRoot()->clearChilds();
+		gui.SceneTree->getRoot()->clearChildren();
 		addSceneTreeItem ( Game->Device->getSceneManager()->getRootSceneNode(), gui.SceneTree->getRoot() );
 	}
 
@@ -1308,7 +1309,7 @@ bool CQuake3EventHandler::OnEvent(const SEvent& eve)
 
 	if ( Game->guiActive && eve.EventType == EET_GUI_EVENT )
 	{
-		if ( eve.Info.GUIEvent.Caller == gui.MapList && eve.Info.GUIEvent.EventType == gui::EGET_LISTBOX_SELECTED_AGAIN )
+		if ( eve.GUIEvent.Caller == gui.MapList && eve.GUIEvent.EventType == gui::EGET_LISTBOX_SELECTED_AGAIN )
 		{
 			s32 selected = gui.MapList->getSelected();
 			if ( selected >= 0 )
@@ -1330,14 +1331,14 @@ bool CQuake3EventHandler::OnEvent(const SEvent& eve)
 			}
 		}
 		else
-		if ( eve.Info.GUIEvent.Caller == gui.ArchiveRemove && eve.Info.GUIEvent.EventType == gui::EGET_BUTTON_CLICKED )
+		if ( eve.GUIEvent.Caller == gui.ArchiveRemove && eve.GUIEvent.EventType == gui::EGET_BUTTON_CLICKED )
 		{
 			Game->Device->getFileSystem()->removeFileArchive( gui.ArchiveList->getSelected() );
 			Game->CurrentMapName = "";
 			AddArchive ( "" );
 		}
 		else
-		if ( eve.Info.GUIEvent.Caller == gui.ArchiveAdd && eve.Info.GUIEvent.EventType == gui::EGET_BUTTON_CLICKED )
+		if ( eve.GUIEvent.Caller == gui.ArchiveAdd && eve.GUIEvent.EventType == gui::EGET_BUTTON_CLICKED )
 		{
 			if ( 0 == gui.ArchiveFileOpen )
 			{
@@ -1346,26 +1347,26 @@ bool CQuake3EventHandler::OnEvent(const SEvent& eve)
 			}
 		}
 		else
-		if ( eve.Info.GUIEvent.Caller == gui.ArchiveFileOpen && eve.Info.GUIEvent.EventType == gui::EGET_FILE_SELECTED )
+		if ( eve.GUIEvent.Caller == gui.ArchiveFileOpen && eve.GUIEvent.EventType == gui::EGET_FILE_SELECTED )
 		{
 			AddArchive ( gui.ArchiveFileOpen->getFileName() );
 			gui.ArchiveFileOpen = 0;
 		}
 		else
-		if ( eve.Info.GUIEvent.Caller == gui.ArchiveFileOpen && eve.Info.GUIEvent.EventType == gui::EGET_DIRECTORY_SELECTED )
+		if ( eve.GUIEvent.Caller == gui.ArchiveFileOpen && eve.GUIEvent.EventType == gui::EGET_DIRECTORY_SELECTED )
 		{
 			AddArchive ( gui.ArchiveFileOpen->getDirectoryName() );
 		}
 		else
-		if ( eve.Info.GUIEvent.Caller == gui.ArchiveFileOpen && eve.Info.GUIEvent.EventType == gui::EGET_FILE_CHOOSE_DIALOG_CANCELLED )
+		if ( eve.GUIEvent.Caller == gui.ArchiveFileOpen && eve.GUIEvent.EventType == gui::EGET_FILE_CHOOSE_DIALOG_CANCELLED )
 		{
 			gui.ArchiveFileOpen = 0;
 		}
 		else
-		if ( ( eve.Info.GUIEvent.Caller == gui.ArchiveUp || eve.Info.GUIEvent.Caller == gui.ArchiveDown ) &&
-			eve.Info.GUIEvent.EventType == gui::EGET_BUTTON_CLICKED )
+		if ( ( eve.GUIEvent.Caller == gui.ArchiveUp || eve.GUIEvent.Caller == gui.ArchiveDown ) &&
+			eve.GUIEvent.EventType == gui::EGET_BUTTON_CLICKED )
 		{
-			s32 rel = eve.Info.GUIEvent.Caller == gui.ArchiveUp ? -1 : 1;
+			s32 rel = eve.GUIEvent.Caller == gui.ArchiveUp ? -1 : 1;
 			if ( Game->Device->getFileSystem()->moveFileArchive ( gui.ArchiveList->getSelected (), rel ) )
 			{
 				s32 newIndex = core::s32_clamp ( gui.ArchiveList->getSelected() + rel, 0, gui.ArchiveList->getRowCount() - 1 );
@@ -1375,56 +1376,56 @@ bool CQuake3EventHandler::OnEvent(const SEvent& eve)
 			}
 		}
 		else
-		if ( eve.Info.GUIEvent.Caller == gui.VideoDriver && eve.Info.GUIEvent.EventType == gui::EGET_COMBO_BOX_CHANGED )
+		if ( eve.GUIEvent.Caller == gui.VideoDriver && eve.GUIEvent.EventType == gui::EGET_COMBO_BOX_CHANGED )
 		{
 			Game->deviceParam.DriverType = (E_DRIVER_TYPE) gui.VideoDriver->getItemData ( gui.VideoDriver->getSelected() );
 		}
 		else
-		if ( eve.Info.GUIEvent.Caller == gui.VideoMode && eve.Info.GUIEvent.EventType == gui::EGET_COMBO_BOX_CHANGED )
+		if ( eve.GUIEvent.Caller == gui.VideoMode && eve.GUIEvent.EventType == gui::EGET_COMBO_BOX_CHANGED )
 		{
 			u32 val = gui.VideoMode->getItemData ( gui.VideoMode->getSelected() );
 			Game->deviceParam.WindowSize.Width = val >> 16;
 			Game->deviceParam.WindowSize.Height = val & 0xFFFF;
 		}
 		else
-		if ( eve.Info.GUIEvent.Caller == gui.FullScreen && eve.Info.GUIEvent.EventType == gui::EGET_CHECKBOX_CHANGED )
+		if ( eve.GUIEvent.Caller == gui.FullScreen && eve.GUIEvent.EventType == gui::EGET_CHECKBOX_CHANGED )
 		{
 			Game->deviceParam.Fullscreen = gui.FullScreen->isChecked();
 		}
 		else
-		if ( eve.Info.GUIEvent.Caller == gui.Bit32 && eve.Info.GUIEvent.EventType == gui::EGET_CHECKBOX_CHANGED )
+		if ( eve.GUIEvent.Caller == gui.Bit32 && eve.GUIEvent.EventType == gui::EGET_CHECKBOX_CHANGED )
 		{
 			Game->deviceParam.Bits = gui.Bit32->isChecked() ? 32 : 16;
 		}
 		else
-		if ( eve.Info.GUIEvent.Caller == gui.MultiSample && eve.Info.GUIEvent.EventType == gui::EGET_SCROLL_BAR_CHANGED )
+		if ( eve.GUIEvent.Caller == gui.MultiSample && eve.GUIEvent.EventType == gui::EGET_SCROLL_BAR_CHANGED )
 		{
 			Game->deviceParam.AntiAlias = gui.MultiSample->getPos();
 		}
 		else
-		if ( eve.Info.GUIEvent.Caller == gui.Tesselation && eve.Info.GUIEvent.EventType == gui::EGET_SCROLL_BAR_CHANGED )
+		if ( eve.GUIEvent.Caller == gui.Tesselation && eve.GUIEvent.EventType == gui::EGET_SCROLL_BAR_CHANGED )
 		{
 			Game->loadParam.patchTesselation = gui.Tesselation->getPos ();
 		}
 		else
-		if ( eve.Info.GUIEvent.Caller == gui.Gamma && eve.Info.GUIEvent.EventType == gui::EGET_SCROLL_BAR_CHANGED )
+		if ( eve.GUIEvent.Caller == gui.Gamma && eve.GUIEvent.EventType == gui::EGET_SCROLL_BAR_CHANGED )
 		{
 			Game->GammaValue = gui.Gamma->getPos () * 0.01f;
 			Game->Device->setGammaRamp ( Game->GammaValue, Game->GammaValue, Game->GammaValue, 0.f, 0.f );
 		}
 		else
-		if ( eve.Info.GUIEvent.Caller == gui.SetVideoMode && eve.Info.GUIEvent.EventType == gui::EGET_BUTTON_CLICKED )
+		if ( eve.GUIEvent.Caller == gui.SetVideoMode && eve.GUIEvent.EventType == gui::EGET_BUTTON_CLICKED )
 		{
 			Game->retVal = 2;
 			Game->Device->closeDevice();
 		}
 		else
-		if ( eve.Info.GUIEvent.Caller == gui.Window && eve.Info.GUIEvent.EventType == gui::EGET_ELEMENT_CLOSED )
+		if ( eve.GUIEvent.Caller == gui.Window && eve.GUIEvent.EventType == gui::EGET_ELEMENT_CLOSED )
 		{
 			Game->Device->closeDevice();
 		}
 		else
-		if ( eve.Info.GUIEvent.Caller == gui.Collision && eve.Info.GUIEvent.EventType == gui::EGET_CHECKBOX_CHANGED )
+		if ( eve.GUIEvent.Caller == gui.Collision && eve.GUIEvent.EventType == gui::EGET_CHECKBOX_CHANGED )
 		{
 			// set fly through active
 			Game->flyTroughState ^= 1;
@@ -1433,7 +1434,7 @@ bool CQuake3EventHandler::OnEvent(const SEvent& eve)
 			printf ( "collision %d\n", Game->flyTroughState == 0 );
 		}
 		else
-		if ( eve.Info.GUIEvent.Caller == gui.Visible_Map && eve.Info.GUIEvent.EventType == gui::EGET_CHECKBOX_CHANGED )
+		if ( eve.GUIEvent.Caller == gui.Visible_Map && eve.GUIEvent.EventType == gui::EGET_CHECKBOX_CHANGED )
 		{
 			bool v = gui.Visible_Map->isChecked();
 
@@ -1444,7 +1445,7 @@ bool CQuake3EventHandler::OnEvent(const SEvent& eve)
 			}
 		}
 		else
-		if ( eve.Info.GUIEvent.Caller == gui.Visible_Shader && eve.Info.GUIEvent.EventType == gui::EGET_CHECKBOX_CHANGED )
+		if ( eve.GUIEvent.Caller == gui.Visible_Shader && eve.GUIEvent.EventType == gui::EGET_CHECKBOX_CHANGED )
 		{
 			bool v = gui.Visible_Shader->isChecked();
 
@@ -1455,7 +1456,7 @@ bool CQuake3EventHandler::OnEvent(const SEvent& eve)
 			}
 		}
 		else
-		if ( eve.Info.GUIEvent.Caller == gui.Visible_Skydome && eve.Info.GUIEvent.EventType == gui::EGET_CHECKBOX_CHANGED )
+		if ( eve.GUIEvent.Caller == gui.Visible_Skydome && eve.GUIEvent.EventType == gui::EGET_CHECKBOX_CHANGED )
 		{
 			if ( SkyNode )
 			{
@@ -1465,7 +1466,7 @@ bool CQuake3EventHandler::OnEvent(const SEvent& eve)
 			}
 		}
 		else
-		if ( eve.Info.GUIEvent.Caller == gui.Respawn && eve.Info.GUIEvent.EventType == gui::EGET_BUTTON_CLICKED )
+		if ( eve.GUIEvent.Caller == gui.Respawn && eve.GUIEvent.EventType == gui::EGET_BUTTON_CLICKED )
 		{
 			Player[0].respawn ();
 		}
@@ -1474,9 +1475,9 @@ bool CQuake3EventHandler::OnEvent(const SEvent& eve)
 	}
 
 	// fire
-	if ((eve.EventType == EET_KEY_INPUT_EVENT && eve.Info.KeyInput.Key == KEY_SPACE &&
-		eve.Info.KeyInput.PressedDown == false) ||
-		(eve.EventType == EET_MOUSE_INPUT_EVENT && eve.Info.MouseInput.Event == EMIE_LMOUSE_LEFT_UP)
+	if ((eve.EventType == EET_KEY_INPUT_EVENT && eve.KeyInput.Key == KEY_SPACE &&
+		eve.KeyInput.PressedDown == false) ||
+		(eve.EventType == EET_MOUSE_INPUT_EVENT && eve.MouseInput.Event == EMIE_LMOUSE_LEFT_UP)
 		)
 	{
 		ICameraSceneNode * camera = Game->Device->getSceneManager()->getActiveCamera ();
@@ -1487,24 +1488,24 @@ bool CQuake3EventHandler::OnEvent(const SEvent& eve)
 	}
 
 	// gui active
-	if ((eve.EventType == EET_KEY_INPUT_EVENT && eve.Info.KeyInput.Key == KEY_F1 &&
-		eve.Info.KeyInput.PressedDown == false) ||
-		(eve.EventType == EET_MOUSE_INPUT_EVENT && eve.Info.MouseInput.Event == EMIE_RMOUSE_LEFT_UP)
+	if ((eve.EventType == EET_KEY_INPUT_EVENT && eve.KeyInput.Key == KEY_F1 &&
+		eve.KeyInput.PressedDown == false) ||
+		(eve.EventType == EET_MOUSE_INPUT_EVENT && eve.MouseInput.Event == EMIE_RMOUSE_LEFT_UP)
 		)
 	{
 		SetGUIActive ( 2 );
 	}
 
 	// check if user presses the key
-	if ( eve.EventType == EET_KEY_INPUT_EVENT && eve.Info.KeyInput.PressedDown == false)
+	if ( eve.EventType == EET_KEY_INPUT_EVENT && eve.KeyInput.PressedDown == false)
 	{
 		// Escape toggles camera Input
-		if ( eve.Info.KeyInput.Key == irr::KEY_ESCAPE )
+		if ( eve.KeyInput.Key == irr::KEY_ESCAPE )
 		{
 			SetGUIActive ( 3 );
 		}
 		else
-		if (eve.Info.KeyInput.Key == KEY_F11)
+		if (eve.KeyInput.Key == KEY_F11)
 		{
 			// screenshot are taken without gamma!
 			IImage* image = Game->Device->getVideoDriver()->createScreenShot();
@@ -1536,7 +1537,7 @@ bool CQuake3EventHandler::OnEvent(const SEvent& eve)
 			}
 		}
 		else
-		if (eve.Info.KeyInput.Key == KEY_F9)
+		if (eve.KeyInput.Key == KEY_F9)
 		{
 			s32 value = EDS_OFF;
 
@@ -1596,7 +1597,7 @@ bool CQuake3EventHandler::OnEvent(const SEvent& eve)
 
 		}
 		else
-		if (eve.Info.KeyInput.Key == KEY_F8)
+		if (eve.KeyInput.Key == KEY_F8)
 		{
 			// set gravity on/off
 			Game->gravityState ^= 1;
@@ -1604,7 +1605,7 @@ bool CQuake3EventHandler::OnEvent(const SEvent& eve)
 			printf ( "gravity %s\n", Game->gravityState ? "earth" : "none" );
 		}
 		else
-		if (eve.Info.KeyInput.Key == KEY_F7)
+		if (eve.KeyInput.Key == KEY_F7)
 		{
 			// set fly through active
 			Game->flyTroughState ^= 1;
@@ -1615,12 +1616,12 @@ bool CQuake3EventHandler::OnEvent(const SEvent& eve)
 			printf ( "collision %d\n", Game->flyTroughState == 0 );
 		}
 		else
-		if (eve.Info.KeyInput.Key == KEY_F2)
+		if (eve.KeyInput.Key == KEY_F2)
 		{
 			Player[0].respawn ();
 		}
 		else
-		if (eve.Info.KeyInput.Key == KEY_F3)
+		if (eve.KeyInput.Key == KEY_F3)
 		{
 			if ( MapParent )
 			{
@@ -1632,7 +1633,7 @@ bool CQuake3EventHandler::OnEvent(const SEvent& eve)
 			}
 		}
 		else
-		if (eve.Info.KeyInput.Key == KEY_F4)
+		if (eve.KeyInput.Key == KEY_F4)
 		{
 			if ( ShaderParent )
 			{
@@ -1644,7 +1645,7 @@ bool CQuake3EventHandler::OnEvent(const SEvent& eve)
 			}
 		}
 		else
-		if (eve.Info.KeyInput.Key == KEY_F5)
+		if (eve.KeyInput.Key == KEY_F5)
 		{
 			if ( FogParent )
 			{
@@ -1657,7 +1658,7 @@ bool CQuake3EventHandler::OnEvent(const SEvent& eve)
 
 		}
 		else
-		if (eve.Info.KeyInput.Key == KEY_F6)
+		if (eve.KeyInput.Key == KEY_F6)
 		{
 			if ( UnresolvedParent )
 			{
@@ -1671,13 +1672,13 @@ bool CQuake3EventHandler::OnEvent(const SEvent& eve)
 	}
 
 	// check if user presses the key C ( for crouch)
-	if ( eve.EventType == EET_KEY_INPUT_EVENT && eve.Info.KeyInput.Key == KEY_KEY_C )
+	if ( eve.EventType == EET_KEY_INPUT_EVENT && eve.KeyInput.Key == KEY_KEY_C )
 	{
 		// crouch
 		ISceneNodeAnimatorCollisionResponse *anim = Player[0].cam ();
 		if ( anim && 0 == Game->flyTroughState )
 		{
-			if ( false == eve.Info.KeyInput.PressedDown )
+			if ( false == eve.KeyInput.PressedDown )
 			{
 				// stand up
 				anim->setEllipsoidRadius (  vector3df(30,45,30) );
@@ -1733,7 +1734,7 @@ void CQuake3EventHandler::useItem( Q3Player * player)
 	line3d<f32> line(start, end);
 
 	// get intersection point with map
-	const scene::ISceneNode* hitNode;
+	scene::ISceneNode* hitNode;
 	if (smgr->getSceneCollisionManager()->getCollisionPoint(
 		line, Meta, end, triangle,hitNode))
 	{
@@ -1886,7 +1887,7 @@ void CQuake3EventHandler::createParticleImpacts( u32 now )
 
 			pas->setMaterialFlag(video::EMF_LIGHTING, false);
 			pas->setMaterialFlag(video::EMF_ZWRITE_ENABLE, false);
-			pas->setMaterialType(video::EMT_TRANSPARENT_VERTEX_ALPHA );
+			pas->setMaterialType(video::EMT_TRANSPARENT_ADD_COLOR );
 			pas->setMaterialTexture(0, Game->Device->getVideoDriver()->getTexture( smoke[g].texture ));
 		}
 
@@ -1933,7 +1934,7 @@ void CQuake3EventHandler::Render()
 		driver->beginScene(true, true, SColor(0,0,0,0));
 		driver->getOverrideMaterial().Material.ColorMask = ECP_NONE;
 		driver->getOverrideMaterial().EnableFlags  = EMF_COLOR_MASK;
-        driver->getOverrideMaterial().EnablePasses = ESNRP_SKY_BOX + 
+        driver->getOverrideMaterial().EnablePasses = ESNRP_SKY_BOX +
                                                      ESNRP_SOLID +
                                                      ESNRP_TRANSPARENT +
                                                      ESNRP_TRANSPARENT_EFFECT +
@@ -1959,7 +1960,7 @@ void CQuake3EventHandler::Render()
 
 		driver->getOverrideMaterial().Material.ColorMask = ECP_RED;
 		driver->getOverrideMaterial().EnableFlags  = EMF_COLOR_MASK;
-		driver->getOverrideMaterial().EnablePasses = 
+		driver->getOverrideMaterial().EnablePasses =
 				ESNRP_SKY_BOX|ESNRP_SOLID|ESNRP_TRANSPARENT|
 				ESNRP_TRANSPARENT_EFFECT|ESNRP_SHADOW;
 
@@ -1975,7 +1976,7 @@ void CQuake3EventHandler::Render()
 
 		driver->getOverrideMaterial().Material.ColorMask = ECP_GREEN + ECP_BLUE;
 		driver->getOverrideMaterial().EnableFlags  = EMF_COLOR_MASK;
-		driver->getOverrideMaterial().EnablePasses = 
+		driver->getOverrideMaterial().EnablePasses =
 				ESNRP_SKY_BOX|ESNRP_SOLID|ESNRP_TRANSPARENT|
 				ESNRP_TRANSPARENT_EFFECT|ESNRP_SHADOW;
 
@@ -2027,7 +2028,7 @@ void CQuake3EventHandler::Animate()
 		IVideoDriver * driver = Game->Device->getVideoDriver();
 
 		IAttributes * attr = smgr->getParameters();
-		snwprintf ( msg, 128,
+		swprintf ( msg, 128,
 			L"Q3 %s [%ls], FPS:%03d Tri:%.03fm Cull %d/%d nodes (%d,%d,%d)",
 			Game->CurrentMapName.c_str(),
 			driver->getName(),
@@ -2041,7 +2042,7 @@ void CQuake3EventHandler::Animate()
 			);
 		Game->Device->setWindowCaption( msg );
 
-		snwprintf ( msg, 128,
+		swprintf ( msg, 128,
 					L"%03d fps, F1 GUI on/off, F2 respawn, F3-F6 toggle Nodes, F7 Collision on/off"
 					L", F8 Gravity on/off, Right Mouse Toggle GUI",
 					Game->Device->getVideoDriver()->getFPS ()

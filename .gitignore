@@ -2,6 +2,7 @@ media
 debug
 release
 ipch
+lib
 *.d
 *.o
 *.a

@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Nikolaus Gebhardt
+// Copyright (C) 2002-2012 Nikolaus Gebhardt
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
@@ -7,12 +7,12 @@
 
 #include "IReferenceCounted.h"
 #include "dimension2d.h"
-#include "video/IVideoDriver.h"
-#include "video/EDriverTypes.h"
+#include "IVideoDriver.h"
+#include "EDriverTypes.h"
 #include "EDeviceTypes.h"
 #include "IEventReceiver.h"
-#include "gui/ICursorControl.h"
-#include "video/IVideoModeList.h"
+#include "ICursorControl.h"
+#include "IVideoModeList.h"
 #include "ITimer.h"
 #include "IOSOperator.h"
 
@@ -20,6 +20,7 @@ namespace irr
 {
 	class ILogger;
 	class IEventReceiver;
+	class IRandomizer;
 
 	namespace io {
 		class IFileSystem;
@@ -130,6 +131,22 @@ namespace irr
 		well as the virtual time, which also can be manipulated.
 		\return Pointer to the ITimer object. */
 		virtual ITimer* getTimer() = 0;
+
+		//! Provides access to the engine's currently set randomizer.
+		/** \return Pointer to the IRandomizer object. */
+		virtual IRandomizer* getRandomizer() const =0;
+
+		//! Sets a new randomizer.
+		/** \param r Pointer to the new IRandomizer object. This object is
+		grab()'ed by the engine and will be released upon the next setRandomizer
+		call or upon device destruction. */
+		virtual void setRandomizer(IRandomizer* r) =0;
+
+		//! Creates a new default randomizer.
+		/** The default randomizer provides the random sequence known from previous
+		Irrlicht versions and is the initial randomizer set on device creation.
+		\return Pointer to the default IRandomizer object. */
+		virtual IRandomizer* createDefaultRandomizer() const =0;
 
 		//! Sets the caption of the window.
 		/** \param text: New text of the window caption. */

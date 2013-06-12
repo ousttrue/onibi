@@ -80,7 +80,7 @@ namespace irr{
 				return false;
 
 			core::position2di mouse=cursor_->getPosition();
-			switch(event.Info.MouseInput.Event)
+			switch(event.MouseInput.Event)
 			{
 			case EMIE_LMOUSE_PRESSED_DOWN:
 				is_mouse_down_[0] = true;
@@ -112,12 +112,12 @@ namespace irr{
 				}
 				break;
 			case EMIE_MOUSE_WHEEL:
-				dolly(event.Info.MouseInput.Wheel);
+				dolly(event.MouseInput.Wheel);
 				break;
 			case EMIE_COUNT:
 				return false;
 			default:
-				std::cout << "unknown: " << event.Info.MouseInput.Event << std::endl;
+				std::cout << "unknown: " << event.MouseInput.Event << std::endl;
 				break;
 			}
 			mouse_=mouse;

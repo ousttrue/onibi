@@ -38,7 +38,7 @@ public:
 	{
 		// Remember whether each key is down or up
 		if (event.EventType == irr::EET_KEY_INPUT_EVENT)
-			KeyIsDown[event.Info.KeyInput.Key] = event.Info.KeyInput.PressedDown;
+			KeyIsDown[event.KeyInput.Key] = event.KeyInput.PressedDown;
 
 		return false;
 	}

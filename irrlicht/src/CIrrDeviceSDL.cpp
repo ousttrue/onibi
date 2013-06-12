@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Nikolaus Gebhardt
+// Copyright (C) 2002-2012 Nikolaus Gebhardt
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
@@ -30,15 +30,13 @@ namespace irr
 	{
 
 		#ifdef _IRR_COMPILE_WITH_DIRECT3D_8_
-		IVideoDriver* createDirectX8Driver(const core::dimension2d<u32>& screenSize, HWND window,
-			u32 bits, bool fullscreen, bool stencilbuffer, io::IFileSystem* io,
-			bool pureSoftware, bool highPrecisionFPU, bool vsync, u8 antiAlias);
+		IVideoDriver* createDirectX8Driver(const irr::SIrrlichtCreationParameters& params,
+			io::IFileSystem* io, HWND window);
 		#endif
 
 		#ifdef _IRR_COMPILE_WITH_DIRECT3D_9_
-		IVideoDriver* createDirectX9Driver(const core::dimension2d<u32>& screenSize, HWND window,
-			u32 bits, bool fullscreen, bool stencilbuffer, io::IFileSystem* io,
-			bool pureSoftware, bool highPrecisionFPU, bool vsync, u8 antiAlias);
+		IVideoDriver* createDirectX9Driver(const irr::SIrrlichtCreationParameters& params,
+			io::IFileSystem* io, HWND window);
 		#endif
 
 		#ifdef _IRR_COMPILE_WITH_OPENGL_
@@ -96,7 +94,7 @@ CIrrDeviceSDL::CIrrDeviceSDL(const SIrrlichtCreationParameters& param)
 	sdlversion += ".";
 	sdlversion += Info.version.patch;
 
-	Operator = new COSOperator(sdlversion.c_str());
+	Operator = new COSOperator(sdlversion);
 	os::Printer::log(sdlversion.c_str(), ELL_INFORMATION);
 
 	// create keymap
@@ -223,11 +221,7 @@ void CIrrDeviceSDL::createDriver()
 	case video::EDT_DIRECT3D8:
 		#ifdef _IRR_COMPILE_WITH_DIRECT3D_8_
 
-		VideoDriver = video::createDirectX8Driver(CreationParams.WindowSize, Info.window,
-			CreationParams.Bits, CreationParams.Fullscreen, CreationParams.Stencilbuffer,
-			FileSystem, false, CreationParams.HighPrecisionFPU, CreationParams.Vsync,
-			CreationParams.AntiAlias);
-
+		VideoDriver = video::createDirectX8Driver(CreationParams, FileSystem, HWnd);
 		if (!VideoDriver)
 		{
 			os::Printer::log("Could not create DIRECT3D8 Driver.", ELL_ERROR);
@@ -241,11 +235,7 @@ void CIrrDeviceSDL::createDriver()
 	case video::EDT_DIRECT3D9:
 		#ifdef _IRR_COMPILE_WITH_DIRECT3D_9_
 
-		VideoDriver = video::createDirectX9Driver(CreationParams.WindowSize, Info.window,
-			CreationParams.Bits, CreationParams.Fullscreen, CreationParams.Stencilbuffer,
-			FileSystem, false, CreationParams.HighPrecisionFPU, CreationParams.Vsync,
-			CreationParams.AntiAlias);
-
+		VideoDriver = video::createDirectX9Driver(CreationParams, FileSystem, HWnd);
 		if (!VideoDriver)
 		{
 			os::Printer::log("Could not create DIRECT3D9 Driver.", ELL_ERROR);
@@ -266,7 +256,7 @@ void CIrrDeviceSDL::createDriver()
 
 	case video::EDT_BURNINGSVIDEO:
 		#ifdef _IRR_COMPILE_WITH_BURNINGSVIDEO_
-		VideoDriver = video::createSoftwareDriver2(CreationParams.WindowSize, CreationParams.Fullscreen, FileSystem, this);
+		VideoDriver = video::createBurningVideoDriver(CreationParams, FileSystem, this);
 		#else
 		os::Printer::log("Burning's video driver was not compiled in.", ELL_ERROR);
 		#endif
@@ -305,10 +295,10 @@ bool CIrrDeviceSDL::run()
 		{
 		case SDL_MOUSEMOTION:
 			irrevent.EventType = irr::EET_MOUSE_INPUT_EVENT;
-			irrevent.Info.MouseInput.Event = irr::EMIE_MOUSE_MOVED;
-			MouseX = irrevent.Info.MouseInput.X = SDL_event.motion.x;
-			MouseY = irrevent.Info.MouseInput.Y = SDL_event.motion.y;
-			irrevent.Info.MouseInput.ButtonStates = MouseButtonStates;
+			irrevent.MouseInput.Event = irr::EMIE_MOUSE_MOVED;
+			MouseX = irrevent.MouseInput.X = SDL_event.motion.x;
+			MouseY = irrevent.MouseInput.Y = SDL_event.motion.y;
+			irrevent.MouseInput.ButtonStates = MouseButtonStates;
 
 			postEventFromUser(irrevent);
 			break;
@@ -317,22 +307,22 @@ bool CIrrDeviceSDL::run()
 		case SDL_MOUSEBUTTONUP:
 
 			irrevent.EventType = irr::EET_MOUSE_INPUT_EVENT;
-			irrevent.Info.MouseInput.X = SDL_event.button.x;
-			irrevent.Info.MouseInput.Y = SDL_event.button.y;
+			irrevent.MouseInput.X = SDL_event.button.x;
+			irrevent.MouseInput.Y = SDL_event.button.y;
 
-			irrevent.Info.MouseInput.Event = irr::EMIE_MOUSE_MOVED;
+			irrevent.MouseInput.Event = irr::EMIE_MOUSE_MOVED;
 
 			switch(SDL_event.button.button)
 			{
 			case SDL_BUTTON_LEFT:
 				if (SDL_event.type == SDL_MOUSEBUTTONDOWN)
 				{
-					irrevent.Info.MouseInput.Event = irr::EMIE_LMOUSE_PRESSED_DOWN;
+					irrevent.MouseInput.Event = irr::EMIE_LMOUSE_PRESSED_DOWN;
 					MouseButtonStates |= irr::EMBSM_LEFT;
 				}
 				else
 				{
-					irrevent.Info.MouseInput.Event = irr::EMIE_LMOUSE_LEFT_UP;
+					irrevent.MouseInput.Event = irr::EMIE_LMOUSE_LEFT_UP;
 					MouseButtonStates &= !irr::EMBSM_LEFT;
 				}
 				break;
@@ -340,12 +330,12 @@ bool CIrrDeviceSDL::run()
 			case SDL_BUTTON_RIGHT:
 				if (SDL_event.type == SDL_MOUSEBUTTONDOWN)
 				{
-					irrevent.Info.MouseInput.Event = irr::EMIE_RMOUSE_PRESSED_DOWN;
+					irrevent.MouseInput.Event = irr::EMIE_RMOUSE_PRESSED_DOWN;
 					MouseButtonStates |= irr::EMBSM_RIGHT;
 				}
 				else
 				{
-					irrevent.Info.MouseInput.Event = irr::EMIE_RMOUSE_LEFT_UP;
+					irrevent.MouseInput.Event = irr::EMIE_RMOUSE_LEFT_UP;
 					MouseButtonStates &= !irr::EMBSM_RIGHT;
 				}
 				break;
@@ -353,44 +343,44 @@ bool CIrrDeviceSDL::run()
 			case SDL_BUTTON_MIDDLE:
 				if (SDL_event.type == SDL_MOUSEBUTTONDOWN)
 				{
-					irrevent.Info.MouseInput.Event = irr::EMIE_MMOUSE_PRESSED_DOWN;
+					irrevent.MouseInput.Event = irr::EMIE_MMOUSE_PRESSED_DOWN;
 					MouseButtonStates |= irr::EMBSM_MIDDLE;
 				}
 				else
 				{
-					irrevent.Info.MouseInput.Event = irr::EMIE_MMOUSE_LEFT_UP;
+					irrevent.MouseInput.Event = irr::EMIE_MMOUSE_LEFT_UP;
 					MouseButtonStates &= !irr::EMBSM_MIDDLE;
 				}
 				break;
 
 			case SDL_BUTTON_WHEELUP:
-				irrevent.Info.MouseInput.Event = irr::EMIE_MOUSE_WHEEL;
-				irrevent.Info.MouseInput.Wheel = 1.0f;
+				irrevent.MouseInput.Event = irr::EMIE_MOUSE_WHEEL;
+				irrevent.MouseInput.Wheel = 1.0f;
 				break;
 
 			case SDL_BUTTON_WHEELDOWN:
-				irrevent.Info.MouseInput.Event = irr::EMIE_MOUSE_WHEEL;
-				irrevent.Info.MouseInput.Wheel = -1.0f;
+				irrevent.MouseInput.Event = irr::EMIE_MOUSE_WHEEL;
+				irrevent.MouseInput.Wheel = -1.0f;
 				break;
 			}
 
-			irrevent.Info.MouseInput.ButtonStates = MouseButtonStates;
+			irrevent.MouseInput.ButtonStates = MouseButtonStates;
 
-			if (irrevent.Info.MouseInput.Event != irr::EMIE_MOUSE_MOVED)
+			if (irrevent.MouseInput.Event != irr::EMIE_MOUSE_MOVED)
 			{
 				postEventFromUser(irrevent);
 
-				if ( irrevent.Info.MouseInput.Event >= EMIE_LMOUSE_PRESSED_DOWN && irrevent.Info.MouseInput.Event <= EMIE_MMOUSE_PRESSED_DOWN )
+				if ( irrevent.MouseInput.Event >= EMIE_LMOUSE_PRESSED_DOWN && irrevent.MouseInput.Event <= EMIE_MMOUSE_PRESSED_DOWN )
 				{
-					u32 clicks = checkSuccessiveClicks(irrevent.Info.MouseInput.X, irrevent.Info.MouseInput.Y, irrevent.Info.MouseInput.Event);
+					u32 clicks = checkSuccessiveClicks(irrevent.MouseInput.X, irrevent.MouseInput.Y, irrevent.MouseInput.Event);
 					if ( clicks == 2 )
 					{
-						irrevent.Info.MouseInput.Event = (EMOUSE_INPUT_EVENT)(EMIE_LMOUSE_DOUBLE_CLICK + irrevent.Info.MouseInput.Event-EMIE_LMOUSE_PRESSED_DOWN);
+						irrevent.MouseInput.Event = (EMOUSE_INPUT_EVENT)(EMIE_LMOUSE_DOUBLE_CLICK + irrevent.MouseInput.Event-EMIE_LMOUSE_PRESSED_DOWN);
 						postEventFromUser(irrevent);
 					}
 					else if ( clicks == 3 )
 					{
-						irrevent.Info.MouseInput.Event = (EMOUSE_INPUT_EVENT)(EMIE_LMOUSE_TRIPLE_CLICK + irrevent.Info.MouseInput.Event-EMIE_LMOUSE_PRESSED_DOWN);
+						irrevent.MouseInput.Event = (EMOUSE_INPUT_EVENT)(EMIE_LMOUSE_TRIPLE_CLICK + irrevent.MouseInput.Event-EMIE_LMOUSE_PRESSED_DOWN);
 						postEventFromUser(irrevent);
 					}
 				}
@@ -419,11 +409,11 @@ bool CIrrDeviceSDL::run()
 				}
 #endif
 				irrevent.EventType = irr::EET_KEY_INPUT_EVENT;
-				irrevent.Info.KeyInput.Char = SDL_event.key.keysym.unicode;
-				irrevent.Info.KeyInput.Key = key;
-				irrevent.Info.KeyInput.PressedDown = (SDL_event.type == SDL_KEYDOWN);
-				irrevent.Info.KeyInput.Shift = (SDL_event.key.keysym.mod & KMOD_SHIFT) != 0;
-				irrevent.Info.KeyInput.Control = (SDL_event.key.keysym.mod & KMOD_CTRL ) != 0;
+				irrevent.KeyInput.Char = SDL_event.key.keysym.unicode;
+				irrevent.KeyInput.Key = key;
+				irrevent.KeyInput.PressedDown = (SDL_event.type == SDL_KEYDOWN);
+				irrevent.KeyInput.Shift = (SDL_event.key.keysym.mod & KMOD_SHIFT) != 0;
+				irrevent.KeyInput.Control = (SDL_event.key.keysym.mod & KMOD_CTRL ) != 0;
 				postEventFromUser(irrevent);
 			}
 			break;
@@ -454,8 +444,8 @@ bool CIrrDeviceSDL::run()
 
 		case SDL_USEREVENT:
 			irrevent.EventType = irr::EET_USER_EVENT;
-			irrevent.Info.UserEvent.UserData1 = *(reinterpret_cast<s32*>(&SDL_event.user.data1));
-			irrevent.Info.UserEvent.UserData2 = *(reinterpret_cast<s32*>(&SDL_event.user.data2));
+			irrevent.UserEvent.UserData1 = *(reinterpret_cast<s32*>(&SDL_event.user.data1));
+			irrevent.UserEvent.UserData2 = *(reinterpret_cast<s32*>(&SDL_event.user.data2));
 
 			postEventFromUser(irrevent);
 			break;
@@ -468,7 +458,7 @@ bool CIrrDeviceSDL::run()
 
 #if defined(_IRR_COMPILE_WITH_JOYSTICK_EVENTS_)
 	// TODO: Check if the multiple open/close calls are too expensive, then
-        // open/close in the constructor/destructor instead
+	// open/close in the constructor/destructor instead
 
 	// update joystick states manually
 	SDL_JoystickUpdate();
@@ -483,20 +473,20 @@ bool CIrrDeviceSDL::run()
 			int j;
 			// query all buttons
 			const int numButtons = core::min_(SDL_JoystickNumButtons(joystick), 32);
-			joyevent.Info.JoystickEvent.ButtonStates=0;
+			joyevent.JoystickEvent.ButtonStates=0;
 			for (j=0; j<numButtons; ++j)
-				joyevent.Info.JoystickEvent.ButtonStates |= (SDL_JoystickGetButton(joystick, j)<<j);
+				joyevent.JoystickEvent.ButtonStates |= (SDL_JoystickGetButton(joystick, j)<<j);
 
 			// query all axes, already in correct range
-			const int numAxes = core::min_(SDL_JoystickNumAxes(joystick), 6);
-			joyevent.Info.JoystickEvent.Axis[SEvent::SJoystickEvent::AXIS_X]=0;
-			joyevent.Info.JoystickEvent.Axis[SEvent::SJoystickEvent::AXIS_Y]=0;
-			joyevent.Info.JoystickEvent.Axis[SEvent::SJoystickEvent::AXIS_Z]=0;
-			joyevent.Info.JoystickEvent.Axis[SEvent::SJoystickEvent::AXIS_R]=0;
-			joyevent.Info.JoystickEvent.Axis[SEvent::SJoystickEvent::AXIS_U]=0;
-			joyevent.Info.JoystickEvent.Axis[SEvent::SJoystickEvent::AXIS_V]=0;
+			const int numAxes = core::min_(SDL_JoystickNumAxes(joystick), SEvent::SJoystickEvent::NUMBER_OF_AXES);
+			joyevent.JoystickEvent.Axis[SEvent::SJoystickEvent::AXIS_X]=0;
+			joyevent.JoystickEvent.Axis[SEvent::SJoystickEvent::AXIS_Y]=0;
+			joyevent.JoystickEvent.Axis[SEvent::SJoystickEvent::AXIS_Z]=0;
+			joyevent.JoystickEvent.Axis[SEvent::SJoystickEvent::AXIS_R]=0;
+			joyevent.JoystickEvent.Axis[SEvent::SJoystickEvent::AXIS_U]=0;
+			joyevent.JoystickEvent.Axis[SEvent::SJoystickEvent::AXIS_V]=0;
 			for (j=0; j<numAxes; ++j)
-				joyevent.Info.JoystickEvent.Axis[j] = SDL_JoystickGetAxis(joystick, j);
+				joyevent.JoystickEvent.Axis[j] = SDL_JoystickGetAxis(joystick, j);
 
 			// we can only query one hat, SDL only supports 8 directions
 			if (SDL_JoystickNumHats(joystick)>0)
@@ -504,42 +494,42 @@ bool CIrrDeviceSDL::run()
 				switch (SDL_JoystickGetHat(joystick, 0))
 				{
 					case SDL_HAT_UP:
-						joyevent.Info.JoystickEvent.POV=0;
+						joyevent.JoystickEvent.POV=0;
 						break;
 					case SDL_HAT_RIGHTUP:
-						joyevent.Info.JoystickEvent.POV=4500;
+						joyevent.JoystickEvent.POV=4500;
 						break;
 					case SDL_HAT_RIGHT:
-						joyevent.Info.JoystickEvent.POV=9000;
+						joyevent.JoystickEvent.POV=9000;
 						break;
 					case SDL_HAT_RIGHTDOWN:
-						joyevent.Info.JoystickEvent.POV=13500;
+						joyevent.JoystickEvent.POV=13500;
 						break;
 					case SDL_HAT_DOWN:
-						joyevent.Info.JoystickEvent.POV=18000;
+						joyevent.JoystickEvent.POV=18000;
 						break;
 					case SDL_HAT_LEFTDOWN:
-						joyevent.Info.JoystickEvent.POV=22500;
+						joyevent.JoystickEvent.POV=22500;
 						break;
 					case SDL_HAT_LEFT:
-						joyevent.Info.JoystickEvent.POV=27000;
+						joyevent.JoystickEvent.POV=27000;
 						break;
 					case SDL_HAT_LEFTUP:
-						joyevent.Info.JoystickEvent.POV=31500;
+						joyevent.JoystickEvent.POV=31500;
 						break;
 					case SDL_HAT_CENTERED:
 					default:
-						joyevent.Info.JoystickEvent.POV=65535;
+						joyevent.JoystickEvent.POV=65535;
 						break;
 				}
 			}
 			else
 			{
-				joyevent.Info.JoystickEvent.POV=65535;
+				joyevent.JoystickEvent.POV=65535;
 			}
 
 			// we map the number directly
-			joyevent.Info.JoystickEvent.Joystick=static_cast<u8>(i);
+			joyevent.JoystickEvent.Joystick=static_cast<u8>(i);
 			// now post the event
 			postEventFromUser(joyevent);
 			// and close the joystick
@@ -580,8 +570,8 @@ bool CIrrDeviceSDL::activateJoysticks(core::array<SJoystickInfo> & joystickInfo)
 	{
 		char logString[256];
 		(void)sprintf(logString, "Found joystick %d, %d axes, %d buttons '%s'",
-		 joystick, joystickInfo[joystick].Axes,
-   joystickInfo[joystick].Buttons, joystickInfo[joystick].Name.c_str());
+		joystick, joystickInfo[joystick].Axes,
+		joystickInfo[joystick].Buttons, joystickInfo[joystick].Name.c_str());
 		os::Printer::log(logString, ELL_INFORMATION);
 	}
 

@@ -75,17 +75,10 @@ int main()
 	smgr->setAmbientLight(video::SColor(0,60,60,60));
 	
 	/*
-	The next is just some standard stuff: Add a user controlled camera to
-	the scene, disable mouse cursor, and add a test cube and let it rotate
-	to make the scene more interesting.
+	The next is just some standard stuff: Add a test cube and let it rotate
+	to make the scene more interesting. The user defined camera and cursor
+	setup is made later on, right before the render loop.
 	*/
-
-	// add fps camera
-	scene::ICameraSceneNode* fpsCamera = smgr->addCameraSceneNodeFPS();
-	fpsCamera->setPosition(core::vector3df(-50,50,-150));
-
-	// disable mouse cursor
-	device->getCursorControl()->setVisible(false);
 
 	// create test cube
 	scene::ISceneNode* test = smgr->addCubeSceneNode(60);
@@ -145,11 +138,18 @@ int main()
 		text->setOverrideColor(video::SColor(100,255,255,255));
 	}
 	
+	// add fps camera
+	scene::ICameraSceneNode* fpsCamera = smgr->addCameraSceneNodeFPS();
+	fpsCamera->setPosition(core::vector3df(-50,50,-150));
+
+	// disable mouse cursor
+	device->getCursorControl()->setVisible(false);
+
 	/*
 	Nearly finished. Now we need to draw everything. Every frame, we draw
 	the scene twice. Once from the fixed camera into the render target
 	texture and once as usual. When rendering into the render target, we
-	need to disable the visibilty of the test cube, because it has the
+	need to disable the visibility of the test cube, because it has the
 	render target texture applied to it. That's it, wasn't too complicated
 	I hope. :)
 	*/

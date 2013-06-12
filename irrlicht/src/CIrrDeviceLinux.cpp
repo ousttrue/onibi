@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Nikolaus Gebhardt
+// Copyright (C) 2002-2012 Nikolaus Gebhardt
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
@@ -11,6 +11,8 @@
 #include <sys/utsname.h>
 #include <time.h>
 #include "IEventReceiver.h"
+#include "ISceneManager.h"
+#include "IGUIEnvironment.h"
 #include "os.h"
 #include "CTimer.h"
 #include "irrString.h"
@@ -18,8 +20,13 @@
 #include "COSOperator.h"
 #include "CColorConverter.h"
 #include "SIrrCreationParameters.h"
+#include "IGUISpriteBank.h"
 #include <X11/XKBlib.h>
 #include <X11/Xatom.h>
+
+#ifdef _IRR_LINUX_XCURSOR_
+#include <X11/Xcursor/Xcursor.h>
+#endif
 
 #if defined _IRR_COMPILE_WITH_JOYSTICK_EVENTS_
 #include <fcntl.h>
@@ -65,7 +72,7 @@ const char* wmDeleteWindow = "WM_DELETE_WINDOW";
 
 //! constructor
 CIrrDeviceLinux::CIrrDeviceLinux(const SIrrlichtCreationParameters& param)
- : CIrrDeviceStub(param),
+	: CIrrDeviceStub(param),
 #ifdef _IRR_COMPILE_WITH_X11_
 	display(0), visual(0), screennr(0), window(0), StdHints(0), SoftwareImage(0),
 #ifdef _IRR_COMPILE_WITH_OPENGL_
@@ -96,7 +103,7 @@ CIrrDeviceLinux::CIrrDeviceLinux(const SIrrlichtCreationParameters& param)
 	linuxversion += " ";
 	linuxversion += LinuxInfo.machine;
 
-	Operator = new COSOperator(linuxversion.c_str(), this);
+	Operator = new COSOperator(linuxversion, this);
 	os::Printer::log(linuxversion.c_str(), ELL_INFORMATION);
 
 	// create keymap
@@ -129,8 +136,30 @@ CIrrDeviceLinux::~CIrrDeviceLinux()
 #ifdef _IRR_COMPILE_WITH_X11_
 	if (StdHints)
 		XFree(StdHints);
-	// Disable cursor and free it later on
-	CursorControl->setVisible(false);
+	// Disable cursor (it is drop'ed in stub)
+	if (CursorControl)
+	{
+		CursorControl->setVisible(false);
+		static_cast<CCursorControl*>(CursorControl)->clearCursors();
+	}
+
+	// Must free OpenGL textures etc before destroying context, so can't wait for stub destructor
+	if ( GUIEnvironment )
+	{
+		GUIEnvironment->drop();
+		GUIEnvironment = NULL;
+	}
+	if ( SceneManager )
+	{
+		SceneManager->drop();
+		SceneManager = NULL;
+	}
+	if ( VideoDriver )
+	{
+		VideoDriver->drop();
+		VideoDriver = NULL;
+	}
+
 	if (display)
 	{
 		#ifdef _IRR_COMPILE_WITH_OPENGL_
@@ -170,9 +199,9 @@ CIrrDeviceLinux::~CIrrDeviceLinux()
 #endif // #ifdef _IRR_COMPILE_WITH_X11_
 
 #if defined(_IRR_COMPILE_WITH_JOYSTICK_EVENTS_)
-	for(u32 joystick = 0; joystick < ActiveJoysticks.size(); ++joystick)
+	for (u32 joystick = 0; joystick < ActiveJoysticks.size(); ++joystick)
 	{
-		if(ActiveJoysticks[joystick].fd >= 0)
+		if (ActiveJoysticks[joystick].fd >= 0)
 		{
 			close(ActiveJoysticks[joystick].fd);
 		}
@@ -402,6 +431,11 @@ bool CIrrDeviceLinux::createWindow()
 					GLX_SAMPLE_BUFFERS_SGIS, 1,
 					GLX_SAMPLES_SGIS, CreationParams.AntiAlias, // 18,19
 #endif
+//#ifdef GL_ARB_framebuffer_sRGB
+//					GLX_FRAMEBUFFER_SRGB_CAPABLE_ARB, CreationParams.HandleSRGB,
+//#elif defined(GL_EXT_framebuffer_sRGB)
+//					GLX_FRAMEBUFFER_SRGB_CAPABLE_EXT, CreationParams.HandleSRGB,
+//#endif
 					GLX_STEREO, CreationParams.Stereobuffer?True:False,
 					None
 				};
@@ -536,7 +570,7 @@ bool CIrrDeviceLinux::createWindow()
 				// attribute array for the draw buffer
 				int visualAttrBuffer[] =
 				{
-					GLX_RGBA, GL_TRUE,
+					GLX_RGBA, GLX_USE_GL,
 					GLX_RED_SIZE, 4,
 					GLX_GREEN_SIZE, 4,
 					GLX_BLUE_SIZE, 4,
@@ -548,6 +582,11 @@ bool CIrrDeviceLinux::createWindow()
 					// GLX_USE_GL, which is silently ignored by glXChooseVisual
 					CreationParams.Doublebuffer?GLX_DOUBLEBUFFER:GLX_USE_GL, // 14
 					CreationParams.Stereobuffer?GLX_STEREO:GLX_USE_GL, // 15
+//#ifdef GL_ARB_framebuffer_sRGB
+//					CreationParams.HandleSRGB?GLX_FRAMEBUFFER_SRGB_CAPABLE_ARB:GLX_USE_GL,
+//#elif defined(GL_EXT_framebuffer_sRGB)
+//					CreationParams.HandleSRGB?GLX_FRAMEBUFFER_SRGB_CAPABLE_EXT:GLX_USE_GL,
+//#endif
 					None
 				};
 
@@ -604,7 +643,7 @@ bool CIrrDeviceLinux::createWindow()
 	}
 #ifdef _DEBUG
 	else
-		os::Printer::log("Visual chosen: ", core::stringc(static_cast<u32>(visual->visualid)).c_str(), ELL_INFORMATION);
+		os::Printer::log("Visual chosen: ", core::stringc(static_cast<u32>(visual->visualid)).c_str(), ELL_DEBUG);
 #endif
 
 	// create color map
@@ -639,7 +678,7 @@ bool CIrrDeviceLinux::createWindow()
 		XSetWMProtocols(display, window, &wmDelete, 1);
 		if (CreationParams.Fullscreen)
 		{
- 			XSetInputFocus(display, window, RevertToParent, CurrentTime);
+			XSetInputFocus(display, window, RevertToParent, CurrentTime);
 			int grabKb = XGrabKeyboard(display, window, True, GrabModeAsync,
 				GrabModeAsync, CurrentTime);
 			IrrPrintXGrabError(grabKb, "XGrabKeyboard");
@@ -671,8 +710,8 @@ bool CIrrDeviceLinux::createWindow()
 	}
 
 	WindowMinimized=false;
- 	// Currently broken in X, see Bug ID 2795321
- 	// XkbSetDetectableAutoRepeat(display, True, &AutorepeatSupport);
+	// Currently broken in X, see Bug ID 2795321
+	// XkbSetDetectableAutoRepeat(display, True, &AutorepeatSupport);
 
 #ifdef _IRR_COMPILE_WITH_OPENGL_
 
@@ -777,7 +816,7 @@ void CIrrDeviceLinux::createDriver()
 
 	case video::EDT_BURNINGSVIDEO:
 		#ifdef _IRR_COMPILE_WITH_BURNINGSVIDEO_
-		VideoDriver = video::createSoftwareDriver2(CreationParams.WindowSize, CreationParams.Fullscreen, FileSystem, this);
+		VideoDriver = video::createBurningVideoDriver(CreationParams, FileSystem, this);
 		#else
 		os::Printer::log("Burning's video driver was not compiled in.", ELL_ERROR);
 		#endif
@@ -823,10 +862,14 @@ bool CIrrDeviceLinux::run()
 	os::Timer::tick();
 
 #ifdef _IRR_COMPILE_WITH_X11_
+
+	if ( CursorControl )
+		static_cast<CCursorControl*>(CursorControl)->update();
+
 	if ((CreationParams.DriverType != video::EDT_NULL) && display)
 	{
 		SEvent irrevent;
-		irrevent.Info.MouseInput.ButtonStates = 0xffffffff;
+		irrevent.MouseInput.ButtonStates = 0xffffffff;
 
 		while (XPending(display) > 0 && !Close)
 		{
@@ -881,16 +924,16 @@ bool CIrrDeviceLinux::run()
 
 			case MotionNotify:
 				irrevent.EventType = irr::EET_MOUSE_INPUT_EVENT;
-				irrevent.Info.MouseInput.Event = irr::EMIE_MOUSE_MOVED;
-				irrevent.Info.MouseInput.X = event.xbutton.x;
-				irrevent.Info.MouseInput.Y = event.xbutton.y;
-				irrevent.Info.MouseInput.Control = (event.xkey.state & ControlMask) != 0;
-				irrevent.Info.MouseInput.Shift = (event.xkey.state & ShiftMask) != 0;
+				irrevent.MouseInput.Event = irr::EMIE_MOUSE_MOVED;
+				irrevent.MouseInput.X = event.xbutton.x;
+				irrevent.MouseInput.Y = event.xbutton.y;
+				irrevent.MouseInput.Control = (event.xkey.state & ControlMask) != 0;
+				irrevent.MouseInput.Shift = (event.xkey.state & ShiftMask) != 0;
 
 				// mouse button states
-				irrevent.Info.MouseInput.ButtonStates = (event.xbutton.state & Button1Mask) ? irr::EMBSM_LEFT : 0;
-				irrevent.Info.MouseInput.ButtonStates |= (event.xbutton.state & Button3Mask) ? irr::EMBSM_RIGHT : 0;
-				irrevent.Info.MouseInput.ButtonStates |= (event.xbutton.state & Button2Mask) ? irr::EMBSM_MIDDLE : 0;
+				irrevent.MouseInput.ButtonStates = (event.xbutton.state & Button1Mask) ? irr::EMBSM_LEFT : 0;
+				irrevent.MouseInput.ButtonStates |= (event.xbutton.state & Button3Mask) ? irr::EMBSM_RIGHT : 0;
+				irrevent.MouseInput.ButtonStates |= (event.xbutton.state & Button2Mask) ? irr::EMBSM_MIDDLE : 0;
 
 				postEventFromUser(irrevent);
 				break;
@@ -899,73 +942,73 @@ bool CIrrDeviceLinux::run()
 			case ButtonRelease:
 
 				irrevent.EventType = irr::EET_MOUSE_INPUT_EVENT;
-				irrevent.Info.MouseInput.X = event.xbutton.x;
-				irrevent.Info.MouseInput.Y = event.xbutton.y;
-				irrevent.Info.MouseInput.Control = (event.xkey.state & ControlMask) != 0;
-				irrevent.Info.MouseInput.Shift = (event.xkey.state & ShiftMask) != 0;
+				irrevent.MouseInput.X = event.xbutton.x;
+				irrevent.MouseInput.Y = event.xbutton.y;
+				irrevent.MouseInput.Control = (event.xkey.state & ControlMask) != 0;
+				irrevent.MouseInput.Shift = (event.xkey.state & ShiftMask) != 0;
 
 				// mouse button states
 				// This sets the state which the buttons had _prior_ to the event.
 				// So unlike on Windows the button which just got changed has still the old state here.
 				// We handle that below by flipping the corresponding bit later.
-				irrevent.Info.MouseInput.ButtonStates = (event.xbutton.state & Button1Mask) ? irr::EMBSM_LEFT : 0;
-				irrevent.Info.MouseInput.ButtonStates |= (event.xbutton.state & Button3Mask) ? irr::EMBSM_RIGHT : 0;
-				irrevent.Info.MouseInput.ButtonStates |= (event.xbutton.state & Button2Mask) ? irr::EMBSM_MIDDLE : 0;
+				irrevent.MouseInput.ButtonStates = (event.xbutton.state & Button1Mask) ? irr::EMBSM_LEFT : 0;
+				irrevent.MouseInput.ButtonStates |= (event.xbutton.state & Button3Mask) ? irr::EMBSM_RIGHT : 0;
+				irrevent.MouseInput.ButtonStates |= (event.xbutton.state & Button2Mask) ? irr::EMBSM_MIDDLE : 0;
 
-				irrevent.Info.MouseInput.Event = irr::EMIE_COUNT;
+				irrevent.MouseInput.Event = irr::EMIE_COUNT;
 
 				switch(event.xbutton.button)
 				{
 				case  Button1:
-					irrevent.Info.MouseInput.Event =
+					irrevent.MouseInput.Event =
 						(event.type == ButtonPress) ? irr::EMIE_LMOUSE_PRESSED_DOWN : irr::EMIE_LMOUSE_LEFT_UP;
-					irrevent.Info.MouseInput.ButtonStates ^= irr::EMBSM_LEFT;
+					irrevent.MouseInput.ButtonStates ^= irr::EMBSM_LEFT;
 					break;
 
 				case  Button3:
-					irrevent.Info.MouseInput.Event =
+					irrevent.MouseInput.Event =
 						(event.type == ButtonPress) ? irr::EMIE_RMOUSE_PRESSED_DOWN : irr::EMIE_RMOUSE_LEFT_UP;
-					irrevent.Info.MouseInput.ButtonStates ^= irr::EMBSM_RIGHT;
+					irrevent.MouseInput.ButtonStates ^= irr::EMBSM_RIGHT;
 					break;
 
 				case  Button2:
-					irrevent.Info.MouseInput.Event =
+					irrevent.MouseInput.Event =
 						(event.type == ButtonPress) ? irr::EMIE_MMOUSE_PRESSED_DOWN : irr::EMIE_MMOUSE_LEFT_UP;
-					irrevent.Info.MouseInput.ButtonStates ^= irr::EMBSM_MIDDLE;
+					irrevent.MouseInput.ButtonStates ^= irr::EMBSM_MIDDLE;
 					break;
 
 				case  Button4:
 					if (event.type == ButtonPress)
 					{
-						irrevent.Info.MouseInput.Event = EMIE_MOUSE_WHEEL;
-						irrevent.Info.MouseInput.Wheel = 1.0f;
+						irrevent.MouseInput.Event = EMIE_MOUSE_WHEEL;
+						irrevent.MouseInput.Wheel = 1.0f;
 					}
 					break;
 
 				case  Button5:
 					if (event.type == ButtonPress)
 					{
-						irrevent.Info.MouseInput.Event = EMIE_MOUSE_WHEEL;
-						irrevent.Info.MouseInput.Wheel = -1.0f;
+						irrevent.MouseInput.Event = EMIE_MOUSE_WHEEL;
+						irrevent.MouseInput.Wheel = -1.0f;
 					}
 					break;
 				}
 
-				if (irrevent.Info.MouseInput.Event != irr::EMIE_COUNT)
+				if (irrevent.MouseInput.Event != irr::EMIE_COUNT)
 				{
 					postEventFromUser(irrevent);
 
-					if ( irrevent.Info.MouseInput.Event >= EMIE_LMOUSE_PRESSED_DOWN && irrevent.Info.MouseInput.Event <= EMIE_MMOUSE_PRESSED_DOWN )
+					if ( irrevent.MouseInput.Event >= EMIE_LMOUSE_PRESSED_DOWN && irrevent.MouseInput.Event <= EMIE_MMOUSE_PRESSED_DOWN )
 					{
-						u32 clicks = checkSuccessiveClicks(irrevent.Info.MouseInput.X, irrevent.Info.MouseInput.Y, irrevent.Info.MouseInput.Event);
+						u32 clicks = checkSuccessiveClicks(irrevent.MouseInput.X, irrevent.MouseInput.Y, irrevent.MouseInput.Event);
 						if ( clicks == 2 )
 						{
-							irrevent.Info.MouseInput.Event = (EMOUSE_INPUT_EVENT)(EMIE_LMOUSE_DOUBLE_CLICK + irrevent.Info.MouseInput.Event-EMIE_LMOUSE_PRESSED_DOWN);
+							irrevent.MouseInput.Event = (EMOUSE_INPUT_EVENT)(EMIE_LMOUSE_DOUBLE_CLICK + irrevent.MouseInput.Event-EMIE_LMOUSE_PRESSED_DOWN);
 							postEventFromUser(irrevent);
 						}
 						else if ( clicks == 3 )
 						{
-							irrevent.Info.MouseInput.Event = (EMOUSE_INPUT_EVENT)(EMIE_LMOUSE_TRIPLE_CLICK + irrevent.Info.MouseInput.Event-EMIE_LMOUSE_PRESSED_DOWN);
+							irrevent.MouseInput.Event = (EMOUSE_INPUT_EVENT)(EMIE_LMOUSE_TRIPLE_CLICK + irrevent.MouseInput.Event-EMIE_LMOUSE_PRESSED_DOWN);
 							postEventFromUser(irrevent);
 						}
 					}
@@ -999,22 +1042,42 @@ bool CIrrDeviceLinux::run()
 					char buf[8]={0};
 					XLookupString(&event.xkey, buf, sizeof(buf), &mp.X11Key, NULL);
 
-					const s32 idx = KeyMap.binary_search(mp);
+					irrevent.EventType = irr::EET_KEY_INPUT_EVENT;
+					irrevent.KeyInput.PressedDown = (event.type == KeyPress);
+//					mbtowc(&irrevent.KeyInput.Char, buf, sizeof(buf));
+					irrevent.KeyInput.Char = ((wchar_t*)(buf))[0];
+					irrevent.KeyInput.Control = (event.xkey.state & ControlMask) != 0;
+					irrevent.KeyInput.Shift = (event.xkey.state & ShiftMask) != 0;
 
+					event.xkey.state = 0; // ignore shift-ctrl states for figuring out the key
+					XLookupString(&event.xkey, buf, sizeof(buf), &mp.X11Key, NULL);
+					const s32 idx = KeyMap.binary_search(mp);
 					if (idx != -1)
-						irrevent.Info.KeyInput.Key = (EKEY_CODE)KeyMap[idx].Win32Key;
+					{
+						irrevent.KeyInput.Key = (EKEY_CODE)KeyMap[idx].Win32Key;
+					}
 					else
 					{
-						// Usually you will check keysymdef.h and add the corresponding key to createKeyMap.
-						irrevent.Info.KeyInput.Key = (EKEY_CODE)0;
-						os::Printer::log("Could not find win32 key for x11 key.", core::stringc((int)mp.X11Key).c_str(), ELL_WARNING);
+						irrevent.KeyInput.Key = (EKEY_CODE)0;
 					}
-					irrevent.EventType = irr::EET_KEY_INPUT_EVENT;
-					irrevent.Info.KeyInput.PressedDown = (event.type == KeyPress);
-//					mbtowc(&irrevent.Info.KeyInput.Char, buf, sizeof(buf));
-					irrevent.Info.KeyInput.Char = ((wchar_t*)(buf))[0];
-					irrevent.Info.KeyInput.Control = (event.xkey.state & ControlMask) != 0;
-					irrevent.Info.KeyInput.Shift = (event.xkey.state & ShiftMask) != 0;
+					if (irrevent.KeyInput.Key == 0)
+					{
+						// 1:1 mapping to windows-keys would require testing for keyboard type (us, ger, ...)
+						// So unless we do that we will have some unknown keys here.
+						if (idx == -1)
+						{
+							os::Printer::log("Could not find EKEY_CODE, using orig. X11 keycode instead", core::stringc(event.xkey.keycode).c_str(), ELL_INFORMATION);
+						}
+						else
+						{
+							os::Printer::log("EKEY_CODE is 0, using orig. X11 keycode instead", core::stringc(event.xkey.keycode).c_str(), ELL_INFORMATION);
+						}
+						// Any value is better than none, that allows at least using the keys.
+						// Worst case is that some keys will be identical, still better than _all_
+						// unknown keys being identical.
+						irrevent.KeyInput.Key = (EKEY_CODE)event.xkey.keycode;
+					}
+
 					postEventFromUser(irrevent);
 				}
 				break;
@@ -1031,8 +1094,8 @@ bool CIrrDeviceLinux::run()
 					{
 						// we assume it's a user message
 						irrevent.EventType = irr::EET_USER_EVENT;
-						irrevent.Info.UserEvent.UserData1 = (s32)event.xclient.data.l[0];
-						irrevent.Info.UserEvent.UserData2 = (s32)event.xclient.data.l[1];
+						irrevent.UserEvent.UserData1 = (s32)event.xclient.data.l[0];
+						irrevent.UserEvent.UserData2 = (s32)event.xclient.data.l[1];
 						postEventFromUser(irrevent);
 					}
 					XFree(atom);
@@ -1048,7 +1111,7 @@ bool CIrrDeviceLinux::run()
 						XChangeProperty (display,
 								req->requestor,
 								req->property, req->target,
-								8,	  // format
+								8, // format
 								PropModeReplace,
 								(unsigned char*) Clipboard.c_str(),
 								Clipboard.size());
@@ -1091,7 +1154,7 @@ bool CIrrDeviceLinux::run()
 	}
 #endif //_IRR_COMPILE_WITH_X11_
 
-	if(!Close)
+	if (!Close)
 		pollJoysticks();
 
 	return !Close;
@@ -1101,7 +1164,7 @@ bool CIrrDeviceLinux::run()
 //! Pause the current process for the minimum time allowed only to allow other processes to execute
 void CIrrDeviceLinux::yield()
 {
-	struct timespec ts = {0,0};
+	struct timespec ts = {0,1};
 	nanosleep(&ts, NULL);
 }
 
@@ -1471,11 +1534,11 @@ void CIrrDeviceLinux::createKeyMap()
 	KeyMap.push_back(SKeyMap(XK_exclam, 0)); //?
 	KeyMap.push_back(SKeyMap(XK_quotedbl, 0)); //?
 	KeyMap.push_back(SKeyMap(XK_section, 0)); //?
-	KeyMap.push_back(SKeyMap(XK_numbersign, 0)); //?
+	KeyMap.push_back(SKeyMap(XK_numbersign, KEY_OEM_2));
 	KeyMap.push_back(SKeyMap(XK_dollar, 0)); //?
 	KeyMap.push_back(SKeyMap(XK_percent, 0)); //?
 	KeyMap.push_back(SKeyMap(XK_ampersand, 0)); //?
-	KeyMap.push_back(SKeyMap(XK_apostrophe, 0)); //?
+	KeyMap.push_back(SKeyMap(XK_apostrophe, KEY_OEM_7));
 	KeyMap.push_back(SKeyMap(XK_parenleft, 0)); //?
 	KeyMap.push_back(SKeyMap(XK_parenright, 0)); //?
 	KeyMap.push_back(SKeyMap(XK_asterisk, 0)); //?
@@ -1483,7 +1546,7 @@ void CIrrDeviceLinux::createKeyMap()
 	KeyMap.push_back(SKeyMap(XK_comma, KEY_COMMA)); //?
 	KeyMap.push_back(SKeyMap(XK_minus, KEY_MINUS)); //?
 	KeyMap.push_back(SKeyMap(XK_period, KEY_PERIOD)); //?
-	KeyMap.push_back(SKeyMap(XK_slash, 0)); //?
+	KeyMap.push_back(SKeyMap(XK_slash, KEY_OEM_2)); //?
 	KeyMap.push_back(SKeyMap(XK_0, KEY_KEY_0));
 	KeyMap.push_back(SKeyMap(XK_1, KEY_KEY_1));
 	KeyMap.push_back(SKeyMap(XK_2, KEY_KEY_2));
@@ -1495,12 +1558,12 @@ void CIrrDeviceLinux::createKeyMap()
 	KeyMap.push_back(SKeyMap(XK_8, KEY_KEY_8));
 	KeyMap.push_back(SKeyMap(XK_9, KEY_KEY_9));
 	KeyMap.push_back(SKeyMap(XK_colon, 0)); //?
-	KeyMap.push_back(SKeyMap(XK_semicolon, 0)); //?
-	KeyMap.push_back(SKeyMap(XK_less, 0)); //?
-	KeyMap.push_back(SKeyMap(XK_equal, 0)); //?
+	KeyMap.push_back(SKeyMap(XK_semicolon, KEY_OEM_1));
+	KeyMap.push_back(SKeyMap(XK_less, KEY_OEM_102));
+	KeyMap.push_back(SKeyMap(XK_equal, KEY_PLUS));
 	KeyMap.push_back(SKeyMap(XK_greater, 0)); //?
 	KeyMap.push_back(SKeyMap(XK_question, 0)); //?
-	KeyMap.push_back(SKeyMap(XK_at, 0)); //?
+	KeyMap.push_back(SKeyMap(XK_at, KEY_KEY_2)); //?
 	KeyMap.push_back(SKeyMap(XK_mu, 0)); //?
 	KeyMap.push_back(SKeyMap(XK_EuroSign, 0)); //?
 	KeyMap.push_back(SKeyMap(XK_A, KEY_KEY_A));
@@ -1529,18 +1592,14 @@ void CIrrDeviceLinux::createKeyMap()
 	KeyMap.push_back(SKeyMap(XK_X, KEY_KEY_X));
 	KeyMap.push_back(SKeyMap(XK_Y, KEY_KEY_Y));
 	KeyMap.push_back(SKeyMap(XK_Z, KEY_KEY_Z));
-	KeyMap.push_back(SKeyMap(XK_Adiaeresis, 0)); //?
-	KeyMap.push_back(SKeyMap(XK_Odiaeresis, 0)); //?
-	KeyMap.push_back(SKeyMap(XK_Udiaeresis, 0)); //?
-	KeyMap.push_back(SKeyMap(XK_bracketleft, 0)); //?
-	KeyMap.push_back(SKeyMap(XK_backslash, 0)); //?
-	KeyMap.push_back(SKeyMap(XK_bracketright, 0)); //?
-	KeyMap.push_back(SKeyMap(XK_asciicircum, 0)); //?
+	KeyMap.push_back(SKeyMap(XK_bracketleft, KEY_OEM_4));
+	KeyMap.push_back(SKeyMap(XK_backslash, KEY_OEM_5));
+	KeyMap.push_back(SKeyMap(XK_bracketright, KEY_OEM_6));
+	KeyMap.push_back(SKeyMap(XK_asciicircum, KEY_OEM_5));
 	KeyMap.push_back(SKeyMap(XK_degree, 0)); //?
-	KeyMap.push_back(SKeyMap(XK_underscore, 0)); //?
-	KeyMap.push_back(SKeyMap(XK_grave, 0)); //?
-	KeyMap.push_back(SKeyMap(XK_acute, 0)); //?
-	KeyMap.push_back(SKeyMap(XK_quoteleft, 0)); //?
+	KeyMap.push_back(SKeyMap(XK_underscore, KEY_MINUS)); //?
+	KeyMap.push_back(SKeyMap(XK_grave, KEY_OEM_3));
+	KeyMap.push_back(SKeyMap(XK_acute, KEY_OEM_6));
 	KeyMap.push_back(SKeyMap(XK_a, KEY_KEY_A));
 	KeyMap.push_back(SKeyMap(XK_b, KEY_KEY_B));
 	KeyMap.push_back(SKeyMap(XK_c, KEY_KEY_C));
@@ -1567,10 +1626,12 @@ void CIrrDeviceLinux::createKeyMap()
 	KeyMap.push_back(SKeyMap(XK_x, KEY_KEY_X));
 	KeyMap.push_back(SKeyMap(XK_y, KEY_KEY_Y));
 	KeyMap.push_back(SKeyMap(XK_z, KEY_KEY_Z));
-	KeyMap.push_back(SKeyMap(XK_ssharp, 0)); //?
-	KeyMap.push_back(SKeyMap(XK_adiaeresis, 0)); //?
-	KeyMap.push_back(SKeyMap(XK_odiaeresis, 0)); //?
-	KeyMap.push_back(SKeyMap(XK_udiaeresis, 0)); //?
+	KeyMap.push_back(SKeyMap(XK_ssharp, KEY_OEM_4));
+	KeyMap.push_back(SKeyMap(XK_adiaeresis, KEY_OEM_7));
+	KeyMap.push_back(SKeyMap(XK_odiaeresis, KEY_OEM_3));
+	KeyMap.push_back(SKeyMap(XK_udiaeresis, KEY_OEM_1));
+	KeyMap.push_back(SKeyMap(XK_Super_L, KEY_LWIN));
+	KeyMap.push_back(SKeyMap(XK_Super_R, KEY_RWIN));
 
 	KeyMap.sort();
 #endif
@@ -1583,7 +1644,7 @@ bool CIrrDeviceLinux::activateJoysticks(core::array<SJoystickInfo> & joystickInf
 	joystickInfo.clear();
 
 	u32 joystick;
-	for(joystick = 0; joystick < 32; ++joystick)
+	for (joystick = 0; joystick < 32; ++joystick)
 	{
 		// The joystick device could be here...
 		core::stringc devName = "/dev/js";
@@ -1593,14 +1654,14 @@ bool CIrrDeviceLinux::activateJoysticks(core::array<SJoystickInfo> & joystickInf
 		JoystickInfo info;
 
 		info.fd = open(devName.c_str(), O_RDONLY);
-		if(-1 == info.fd)
+		if (-1 == info.fd)
 		{
 			// ...but Ubuntu and possibly other distros
 			// create the devices in /dev/input
 			devName = "/dev/input/js";
 			devName += joystick;
 			info.fd = open(devName.c_str(), O_RDONLY);
-			if(-1 == info.fd)
+			if (-1 == info.fd)
 			{
 				// and BSD here
 				devName = "/dev/joy";
@@ -1609,7 +1670,7 @@ bool CIrrDeviceLinux::activateJoysticks(core::array<SJoystickInfo> & joystickInf
 			}
 		}
 
-		if(-1 == info.fd)
+		if (-1 == info.fd)
 			continue;
 
 #ifdef __FREE_BSD_
@@ -1623,11 +1684,11 @@ bool CIrrDeviceLinux::activateJoysticks(core::array<SJoystickInfo> & joystickInf
 
 		(void)memset(&info.persistentData, 0, sizeof(info.persistentData));
 		info.persistentData.EventType = irr::EET_JOYSTICK_INPUT_EVENT;
-		info.persistentData.Info.JoystickEvent.Joystick = ActiveJoysticks.size();
+		info.persistentData.JoystickEvent.Joystick = ActiveJoysticks.size();
 
 		// There's no obvious way to determine which (if any) axes represent a POV
 		// hat, so we'll just set it to "not used" and forget about it.
-		info.persistentData.Info.JoystickEvent.POV = 65535;
+		info.persistentData.JoystickEvent.POV = 65535;
 
 		ActiveJoysticks.push_back(info);
 
@@ -1645,7 +1706,7 @@ bool CIrrDeviceLinux::activateJoysticks(core::array<SJoystickInfo> & joystickInf
 		joystickInfo.push_back(returnInfo);
 	}
 
-	for(joystick = 0; joystick < joystickInfo.size(); ++joystick)
+	for (joystick = 0; joystick < joystickInfo.size(); ++joystick)
 	{
 		char logString[256];
 		(void)sprintf(logString, "Found joystick %u, %u axes, %u buttons '%s'",
@@ -1664,36 +1725,36 @@ bool CIrrDeviceLinux::activateJoysticks(core::array<SJoystickInfo> & joystickInf
 void CIrrDeviceLinux::pollJoysticks()
 {
 #if defined (_IRR_COMPILE_WITH_JOYSTICK_EVENTS_)
-	if(0 == ActiveJoysticks.size())
+	if (0 == ActiveJoysticks.size())
 		return;
 
-	u32 j;
-	for(j= 0; j< ActiveJoysticks.size(); ++j)
+	for (u32 j= 0; j< ActiveJoysticks.size(); ++j)
 	{
 		JoystickInfo & info =  ActiveJoysticks[j];
 
 #ifdef __FREE_BSD_
 		struct joystick js;
-		if( read( info.fd, &js, JS_RETURN ) == JS_RETURN )
+		if (read(info.fd, &js, JS_RETURN) == JS_RETURN)
 		{
-			info.persistentData.Info.JoystickEvent.ButtonStates = js.buttons; /* should be a two-bit field */
-			info.persistentData.Info.JoystickEvent.Axis[0] = js.x; /* X axis */
-			info.persistentData.Info.JoystickEvent.Axis[1] = js.y; /* Y axis */
+			info.persistentData.JoystickEvent.ButtonStates = js.buttons; /* should be a two-bit field */
+			info.persistentData.JoystickEvent.Axis[0] = js.x; /* X axis */
+			info.persistentData.JoystickEvent.Axis[1] = js.y; /* Y axis */
 #else
 		struct js_event event;
-		while(sizeof(event) == read(info.fd, &event, sizeof(event)))
+		while (sizeof(event) == read(info.fd, &event, sizeof(event)))
 		{
 			switch(event.type & ~JS_EVENT_INIT)
 			{
 			case JS_EVENT_BUTTON:
 				if (event.value)
-						info.persistentData.Info.JoystickEvent.ButtonStates |= (1 << event.number);
-	   			else
-		  				info.persistentData.Info.JoystickEvent.ButtonStates &= ~(1 << event.number);
+						info.persistentData.JoystickEvent.ButtonStates |= (1 << event.number);
+				else
+						info.persistentData.JoystickEvent.ButtonStates &= ~(1 << event.number);
 				break;
 
 			case JS_EVENT_AXIS:
-				info.persistentData.Info.JoystickEvent.Axis[event.number] = event.value;
+				if (event.number < SEvent::SJoystickEvent::NUMBER_OF_AXES)
+					info.persistentData.JoystickEvent.Axis[event.number] = event.value;
 				break;
 
 			default:
@@ -1822,16 +1883,16 @@ const c8* CIrrDeviceLinux::getTextFromClipboard() const
 		unsigned long numItems, bytesLeft, dummy;
 		unsigned char *data;
 		XGetWindowProperty (display, ownerWindow,
-				XA_STRING, 	  // property name
-				0,		 // offset
-				0,	  	  // length (we only check for data, so 0)
-				0, 	 	  // Delete 0==false
-				AnyPropertyType,  // AnyPropertyType or property identifier
-				&type,		  // return type
-				&format,	  // return format
-				&numItems,   // number items
-				&bytesLeft,  // remaining bytes for partial reads
-				&data);		// data
+				XA_STRING, // property name
+				0, // offset
+				0, // length (we only check for data, so 0)
+				0, // Delete 0==false
+				AnyPropertyType, // AnyPropertyType or property identifier
+				&type, // return type
+				&format, // return format
+				&numItems, // number items
+				&bytesLeft, // remaining bytes for partial reads
+				&data); // data
 		if ( bytesLeft > 0 )
 		{
 			// there is some data to get
@@ -1884,15 +1945,15 @@ void CIrrDeviceLinux::clearSystemMessages()
 	{
 		XEvent event;
 		int usrArg = ButtonPress;
-		while ( XCheckIfEvent(display, &event, PredicateIsEventType, XPointer(&usrArg)) == True ) 	{}
+		while ( XCheckIfEvent(display, &event, PredicateIsEventType, XPointer(&usrArg)) == True ) {}
 		usrArg = ButtonRelease;
 		while ( XCheckIfEvent(display, &event, PredicateIsEventType, XPointer(&usrArg)) == True ) {}
 		usrArg = MotionNotify;
-		while ( XCheckIfEvent(display, &event, PredicateIsEventType, XPointer(&usrArg)) == True ) 	{}
+		while ( XCheckIfEvent(display, &event, PredicateIsEventType, XPointer(&usrArg)) == True ) {}
 		usrArg = KeyRelease;
-		while ( XCheckIfEvent(display, &event, PredicateIsEventType, XPointer(&usrArg)) == True )	{}
+		while ( XCheckIfEvent(display, &event, PredicateIsEventType, XPointer(&usrArg)) == True ) {}
 		usrArg = KeyPress;
-		while ( XCheckIfEvent(display, &event, PredicateIsEventType, XPointer(&usrArg)) == True )		{}
+		while ( XCheckIfEvent(display, &event, PredicateIsEventType, XPointer(&usrArg)) == True ) {}
 	}
 #endif //_IRR_COMPILE_WITH_X11_
 }
@@ -1905,6 +1966,317 @@ void CIrrDeviceLinux::initXAtoms()
 	X_ATOM_UTF8_STRING = XInternAtom (display, "UTF8_STRING", False);
 	X_ATOM_TEXT = XInternAtom (display, "TEXT", False);
 #endif
+}
+
+
+#ifdef _IRR_COMPILE_WITH_X11_
+
+Cursor CIrrDeviceLinux::TextureToMonochromeCursor(irr::video::ITexture * tex, const core::rect<s32>& sourceRect, const core::position2d<s32> &hotspot)
+{
+	XImage * sourceImage = XCreateImage(display, visual->visual,
+										1, // depth,
+										ZPixmap,	// XYBitmap (depth=1), ZPixmap(depth=x)
+										0, 0, sourceRect.getWidth(), sourceRect.getHeight(),
+										32, // bitmap_pad,
+										0// bytes_per_line (0 means continuos in memory)
+										);
+	sourceImage->data = new char[sourceImage->height * sourceImage->bytes_per_line];
+	XImage * maskImage = XCreateImage(display, visual->visual,
+										1, // depth,
+										ZPixmap,
+										0, 0, sourceRect.getWidth(), sourceRect.getHeight(),
+										32, // bitmap_pad,
+										0 // bytes_per_line
+										);
+	maskImage->data = new char[maskImage->height * maskImage->bytes_per_line];
+
+	// write texture into XImage
+	video::ECOLOR_FORMAT format = tex->getColorFormat();
+	u32 bytesPerPixel = video::IImage::getBitsPerPixelFromFormat(format) / 8;
+	u32 bytesLeftGap = sourceRect.UpperLeftCorner.X * bytesPerPixel;
+	u32 bytesRightGap = tex->getPitch() - sourceRect.LowerRightCorner.X * bytesPerPixel;
+	const u8* data = (const u8*)tex->lock(video::ETLM_READ_ONLY, 0);
+	data += sourceRect.UpperLeftCorner.Y*tex->getPitch();
+	for ( s32 y = 0; y < sourceRect.getHeight(); ++y )
+	{
+		data += bytesLeftGap;
+		for ( s32 x = 0; x < sourceRect.getWidth(); ++x )
+		{
+			video::SColor pixelCol;
+			pixelCol.setData((const void*)data, format);
+			data += bytesPerPixel;
+
+			if ( pixelCol.getAlpha() == 0 )	// transparent
+			{
+				XPutPixel(maskImage, x, y, 0);
+				XPutPixel(sourceImage, x, y, 0);
+			}
+			else	// color
+			{
+				if ( pixelCol.getAverage() >= 127 )
+					XPutPixel(sourceImage, x, y, 1);
+				else
+					XPutPixel(sourceImage, x, y, 0);
+				XPutPixel(maskImage, x, y, 1);
+			}
+		}
+		data += bytesRightGap;
+	}
+	tex->unlock();
+
+	Pixmap sourcePixmap = XCreatePixmap(display, window, sourceImage->width, sourceImage->height, sourceImage->depth);
+	Pixmap maskPixmap = XCreatePixmap(display, window, maskImage->width, maskImage->height, maskImage->depth);
+
+	XGCValues values;
+	values.foreground = 1;
+	values.background = 1;
+	GC gc = XCreateGC( display, sourcePixmap, GCForeground | GCBackground, &values );
+
+	XPutImage(display, sourcePixmap, gc, sourceImage, 0, 0, 0, 0, sourceImage->width, sourceImage->height);
+	XPutImage(display, maskPixmap, gc, maskImage, 0, 0, 0, 0, maskImage->width, maskImage->height);
+
+	XFreeGC(display, gc);
+	XDestroyImage(sourceImage);
+	XDestroyImage(maskImage);
+
+	Cursor cursorResult = 0;
+	XColor foreground, background;
+	foreground.red = 65535;
+	foreground.green = 65535;
+	foreground.blue = 65535;
+	foreground.flags = DoRed | DoGreen | DoBlue;
+	background.red = 0;
+	background.green = 0;
+	background.blue = 0;
+	background.flags = DoRed | DoGreen | DoBlue;
+
+	cursorResult = XCreatePixmapCursor(display, sourcePixmap, maskPixmap, &foreground, &background, hotspot.X, hotspot.Y);
+
+	XFreePixmap(display, sourcePixmap);
+	XFreePixmap(display, maskPixmap);
+
+	return cursorResult;
+}
+
+#ifdef _IRR_LINUX_XCURSOR_
+Cursor CIrrDeviceLinux::TextureToARGBCursor(irr::video::ITexture * tex, const core::rect<s32>& sourceRect, const core::position2d<s32> &hotspot)
+{
+	XcursorImage * image = XcursorImageCreate (sourceRect.getWidth(), sourceRect.getHeight());
+	image->xhot = hotspot.X;
+	image->yhot = hotspot.Y;
+
+	// write texture into XcursorImage
+	video::ECOLOR_FORMAT format = tex->getColorFormat();
+	u32 bytesPerPixel = video::IImage::getBitsPerPixelFromFormat(format) / 8;
+	u32 bytesLeftGap = sourceRect.UpperLeftCorner.X * bytesPerPixel;
+	u32 bytesRightGap = tex->getPitch() - sourceRect.LowerRightCorner.X * bytesPerPixel;
+	XcursorPixel* target = image->pixels;
+	const u8* data = (const u8*)tex->lock(ETLM_READ_ONLY, 0);
+	data += sourceRect.UpperLeftCorner.Y*tex->getPitch();
+	for ( s32 y = 0; y < sourceRect.getHeight(); ++y )
+	{
+		data += bytesLeftGap;
+		for ( s32 x = 0; x < sourceRect.getWidth(); ++x )
+		{
+			video::SColor pixelCol;
+			pixelCol.setData((const void*)data, format);
+			data += bytesPerPixel;
+
+			*target = (XcursorPixel)pixelCol.color;
+			++target;
+		}
+		data += bytesRightGap;
+	}
+	tex->unlock();
+
+	Cursor cursorResult=XcursorImageLoadCursor(display, image);
+
+	XcursorImageDestroy(image);
+
+
+	return cursorResult;
+}
+#endif // #ifdef _IRR_LINUX_XCURSOR_
+
+Cursor CIrrDeviceLinux::TextureToCursor(irr::video::ITexture * tex, const core::rect<s32>& sourceRect, const core::position2d<s32> &hotspot)
+{
+#ifdef _IRR_LINUX_XCURSOR_
+	return TextureToARGBCursor( tex, sourceRect, hotspot );
+#else
+	return TextureToMonochromeCursor( tex, sourceRect, hotspot );
+#endif
+}
+#endif	// _IRR_COMPILE_WITH_X11_
+
+
+CIrrDeviceLinux::CCursorControl::CCursorControl(CIrrDeviceLinux* dev, bool null)
+	: Device(dev)
+#ifdef _IRR_COMPILE_WITH_X11_
+	, PlatformBehavior(gui::ECPB_NONE), lastQuery(0)
+#endif
+	, IsVisible(true), Null(null), UseReferenceRect(false)
+	, ActiveIcon(gui::ECI_NORMAL), ActiveIconStartTime(0)
+{
+#ifdef _IRR_COMPILE_WITH_X11_
+	if (!Null)
+	{
+		XGCValues values;
+		unsigned long valuemask = 0;
+
+		XColor fg, bg;
+
+		// this code, for making the cursor invisible was sent in by
+		// Sirshane, thank your very much!
+
+
+		Pixmap invisBitmap = XCreatePixmap(Device->display, Device->window, 32, 32, 1);
+		Pixmap maskBitmap = XCreatePixmap(Device->display, Device->window, 32, 32, 1);
+		Colormap screen_colormap = DefaultColormap( Device->display, DefaultScreen( Device->display ) );
+		XAllocNamedColor( Device->display, screen_colormap, "black", &fg, &fg );
+		XAllocNamedColor( Device->display, screen_colormap, "white", &bg, &bg );
+
+		GC gc = XCreateGC( Device->display, invisBitmap, valuemask, &values );
+
+		XSetForeground( Device->display, gc, BlackPixel( Device->display, DefaultScreen( Device->display ) ) );
+		XFillRectangle( Device->display, invisBitmap, gc, 0, 0, 32, 32 );
+		XFillRectangle( Device->display, maskBitmap, gc, 0, 0, 32, 32 );
+
+		invisCursor = XCreatePixmapCursor( Device->display, invisBitmap, maskBitmap, &fg, &bg, 1, 1 );
+		XFreeGC(Device->display, gc);
+		XFreePixmap(Device->display, invisBitmap);
+		XFreePixmap(Device->display, maskBitmap);
+
+		initCursors();
+	}
+#endif
+}
+
+CIrrDeviceLinux::CCursorControl::~CCursorControl()
+{
+	// Do not clearCursors here as the display is already closed
+	// TODO (cutealien): droping cursorcontrol earlier might work, not sure about reason why that's done in stub currently.
+}
+
+#ifdef _IRR_COMPILE_WITH_X11_
+void CIrrDeviceLinux::CCursorControl::clearCursors()
+{
+	if (!Null)
+		XFreeCursor(Device->display, invisCursor);
+	for ( u32 i=0; i < Cursors.size(); ++i )
+	{
+		for ( u32 f=0; f < Cursors[i].Frames.size(); ++f )
+		{
+			XFreeCursor(Device->display, Cursors[i].Frames[f].IconHW);
+		}
+	}
+}
+
+void CIrrDeviceLinux::CCursorControl::initCursors()
+{
+	Cursors.push_back( CursorX11(XCreateFontCursor(Device->display, XC_top_left_arrow)) ); //  (or XC_arrow?)
+	Cursors.push_back( CursorX11(XCreateFontCursor(Device->display, XC_crosshair)) );
+	Cursors.push_back( CursorX11(XCreateFontCursor(Device->display, XC_hand2)) ); // (or XC_hand1? )
+	Cursors.push_back( CursorX11(XCreateFontCursor(Device->display, XC_question_arrow)) );
+	Cursors.push_back( CursorX11(XCreateFontCursor(Device->display, XC_xterm)) );
+	Cursors.push_back( CursorX11(XCreateFontCursor(Device->display, XC_X_cursor)) );	//  (or XC_pirate?)
+	Cursors.push_back( CursorX11(XCreateFontCursor(Device->display, XC_watch)) );	// (or XC_clock?)
+	Cursors.push_back( CursorX11(XCreateFontCursor(Device->display, XC_fleur)) );
+	Cursors.push_back( CursorX11(XCreateFontCursor(Device->display, XC_top_right_corner)) );	// NESW not available in X11
+	Cursors.push_back( CursorX11(XCreateFontCursor(Device->display, XC_top_left_corner)) );	// NWSE not available in X11
+	Cursors.push_back( CursorX11(XCreateFontCursor(Device->display, XC_sb_v_double_arrow)) );
+	Cursors.push_back( CursorX11(XCreateFontCursor(Device->display, XC_sb_h_double_arrow)) );
+	Cursors.push_back( CursorX11(XCreateFontCursor(Device->display, XC_sb_up_arrow)) );	// (or XC_center_ptr?)
+}
+
+void CIrrDeviceLinux::CCursorControl::update()
+{
+	if ( (u32)ActiveIcon < Cursors.size() && !Cursors[ActiveIcon].Frames.empty() && Cursors[ActiveIcon].FrameTime )
+	{
+		// update animated cursors. This could also be done by X11 in case someone wants to figure that out (this way was just easier to implement)
+		u32 now = Device->getTimer()->getRealTime();
+		u32 frame = ((now - ActiveIconStartTime) / Cursors[ActiveIcon].FrameTime) % Cursors[ActiveIcon].Frames.size();
+		XDefineCursor(Device->display, Device->window, Cursors[ActiveIcon].Frames[frame].IconHW);
+	}
+}
+#endif
+
+//! Sets the active cursor icon
+void CIrrDeviceLinux::CCursorControl::setActiveIcon(gui::ECURSOR_ICON iconId)
+{
+#ifdef _IRR_COMPILE_WITH_X11_
+	if ( iconId >= (s32)Cursors.size() )
+		return;
+
+	if ( Cursors[iconId].Frames.size() )
+		XDefineCursor(Device->display, Device->window, Cursors[iconId].Frames[0].IconHW);
+
+	ActiveIconStartTime = Device->getTimer()->getRealTime();
+	ActiveIcon = iconId;
+#endif
+}
+
+
+//! Add a custom sprite as cursor icon.
+gui::ECURSOR_ICON CIrrDeviceLinux::CCursorControl::addIcon(const gui::SCursorSprite& icon)
+{
+#ifdef _IRR_COMPILE_WITH_X11_
+	if ( icon.SpriteId >= 0 )
+	{
+		CursorX11 cX11;
+		cX11.FrameTime = icon.SpriteBank->getSprites()[icon.SpriteId].frameTime;
+		for ( u32 i=0; i < icon.SpriteBank->getSprites()[icon.SpriteId].Frames.size(); ++i )
+		{
+			irr::u32 texId = icon.SpriteBank->getSprites()[icon.SpriteId].Frames[i].textureNumber;
+			irr::u32 rectId = icon.SpriteBank->getSprites()[icon.SpriteId].Frames[i].rectNumber;
+			irr::core::rect<s32> rectIcon = icon.SpriteBank->getPositions()[rectId];
+			Cursor cursor = Device->TextureToCursor(icon.SpriteBank->getTexture(texId), rectIcon, icon.HotSpot);
+			cX11.Frames.push_back( CursorFrameX11(cursor) );
+		}
+
+		Cursors.push_back( cX11 );
+
+		return (gui::ECURSOR_ICON)(Cursors.size() - 1);
+	}
+#endif
+	return gui::ECI_NORMAL;
+}
+
+//! replace the given cursor icon.
+void CIrrDeviceLinux::CCursorControl::changeIcon(gui::ECURSOR_ICON iconId, const gui::SCursorSprite& icon)
+{
+#ifdef _IRR_COMPILE_WITH_X11_
+	if ( iconId >= (s32)Cursors.size() )
+		return;
+
+	for ( u32 i=0; i < Cursors[iconId].Frames.size(); ++i )
+		XFreeCursor(Device->display, Cursors[iconId].Frames[i].IconHW);
+
+	if ( icon.SpriteId >= 0 )
+	{
+		CursorX11 cX11;
+		cX11.FrameTime = icon.SpriteBank->getSprites()[icon.SpriteId].frameTime;
+		for ( u32 i=0; i < icon.SpriteBank->getSprites()[icon.SpriteId].Frames.size(); ++i )
+		{
+			irr::u32 texId = icon.SpriteBank->getSprites()[icon.SpriteId].Frames[i].textureNumber;
+			irr::u32 rectId = icon.SpriteBank->getSprites()[icon.SpriteId].Frames[i].rectNumber;
+			irr::core::rect<s32> rectIcon = icon.SpriteBank->getPositions()[rectId];
+			Cursor cursor = Device->TextureToCursor(icon.SpriteBank->getTexture(texId), rectIcon, icon.HotSpot);
+			cX11.Frames.push_back( CursorFrameX11(cursor) );
+		}
+
+		Cursors[iconId] = cX11;
+	}
+#endif
+}
+
+irr::core::dimension2di CIrrDeviceLinux::CCursorControl::getSupportedIconSize() const
+{
+	// this returns the closest match that is smaller or same size, so we just pass a value which should be large enough for cursors
+	unsigned int width=0, height=0;
+#ifdef _IRR_COMPILE_WITH_X11_
+	XQueryBestCursor(Device->display, Device->window, 64, 64, &width, &height);
+#endif
+	return core::dimension2di(width, height);
 }
 
 } // end namespace

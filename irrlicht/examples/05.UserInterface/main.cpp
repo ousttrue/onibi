@@ -59,15 +59,14 @@ class MyEventReceiver : public IEventReceiver
 public:
 	MyEventReceiver(SAppContext & context) : Context(context) { }
 
-	virtual bool OnEvent(const SEvent& _event)
+	virtual bool OnEvent(const SEvent& event)
 	{
-		if (_event.EventType == EET_GUI_EVENT)
+		if (event.EventType == EET_GUI_EVENT)
 		{
-            SGUIEvent event=_event.Info.GUIEvent;
-			s32 id = event.Caller->getID();
+			s32 id = event.GUIEvent.Caller->getID();
 			IGUIEnvironment* env = Context.device->getGUIEnvironment();
 
-			switch(event.EventType)
+			switch(event.GUIEvent.EventType)
 			{
 
 			/*
@@ -81,7 +80,7 @@ public:
 			case EGET_SCROLL_BAR_CHANGED:
 				if (id == GUI_ID_TRANSPARENCY_SCROLL_BAR)
 				{
-					s32 pos = ((IGUIScrollBar*)event.Caller)->getPos();
+					s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
 					
 					for (u32 i=0; i<EGDC_COUNT ; ++i)
 					{
@@ -131,11 +130,24 @@ public:
 
 				case GUI_ID_FILE_OPEN_BUTTON:
 					Context.listbox->addItem(L"File open");
-					env->addFileOpenDialog(L"Please choose a file.");
+					// There are some options for the file open dialog
+					// We set the title, make it a modal window, and make sure
+					// that the working directory is restored after the dialog
+					// is finished.
+					env->addFileOpenDialog(L"Please choose a file.", true, 0, -1, true);
 					return true;
 
 				default:
 					return false;
+				}
+				break;
+
+			case EGET_FILE_SELECTED:
+				{
+					// show the model filename, selected in the file dialog
+					IGUIFileOpenDialog* dialog =
+						(IGUIFileOpenDialog*)event.GUIEvent.Caller;
+					Context.listbox->addItem(dialog->getFileName());
 				}
 				break;
 

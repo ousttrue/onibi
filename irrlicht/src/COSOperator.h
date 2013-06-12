@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2009 Nikolaus Gebhardt
+// Copyright (C) 2002-2012 Nikolaus Gebhardt
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
@@ -6,8 +6,6 @@
 #define __C_OS_OPERATOR_H_INCLUDED__
 
 #include "IOSOperator.h"
-#include "irrString.h"
-#include "IrrCompileConfig.h"
 
 namespace irr
 {
@@ -21,27 +19,19 @@ public:
 
 	// constructor
 #if defined(_IRR_COMPILE_WITH_X11_DEVICE_)
-    COSOperator(const c8* osversion, CIrrDeviceLinux* device);
+	COSOperator(const core::stringc& osversion, CIrrDeviceLinux* device);
 #endif
- 	COSOperator(const c8* osversion);
+ 	COSOperator(const core::stringc& osversion);
 
 	//! returns the current operation system version as string.
-	virtual const wchar_t* getOperationSystemVersion() const;
+	virtual const core::stringc& getOperatingSystemVersion() const;
 
 	//! copies text to the clipboard
-#if defined(_IRR_IMPROVE_UNICODE)
-	virtual void copyToClipboard(const wchar_t* text) const;
-#else
 	virtual void copyToClipboard(const c8* text) const;
-#endif
 
 	//! gets text from the clipboard
 	//! \return Returns 0 if no string is in there.
-#if defined(_IRR_IMPROVE_UNICODE)
-	virtual const wchar_t* getTextFromClipboard() const;
-#else
 	virtual const c8* getTextFromClipboard() const;
-#endif
 
 	//! gets the processor speed in megahertz
 	//! \param Mhz:
@@ -56,7 +46,7 @@ public:
 
 private:
 
-	core::stringw OperatingSystem;
+	core::stringc OperatingSystem;
 
 #if defined(_IRR_COMPILE_WITH_X11_DEVICE_)
     CIrrDeviceLinux * IrrDeviceLinux;

@@ -172,7 +172,7 @@ public:
 		if ( event.EventType != EET_GUI_EVENT )
 			return false;
 
-		if ( event.Info.GUIEvent.Caller->getID() == ButtonSetId && event.Info.GUIEvent.EventType == gui::EGET_BUTTON_CLICKED )
+		if ( event.GUIEvent.Caller->getID() == ButtonSetId && event.GUIEvent.EventType == gui::EGET_BUTTON_CLICKED )
 		{
 			Color = GetColorFromEdits();
 			SetEditsFromColor(Color);
@@ -227,41 +227,37 @@ protected:
 	{
 		video::SColor col;
 
-		u32 alpha=col.getAlpha();
-		if ( EditAlpha )
+		if (EditAlpha)
 		{
-			alpha = (u32)core::strtol10(  core::stringc( EditAlpha->getText() ).c_str(), 0);
-			if ( alpha > 255 )
+			u32 alpha = core::strtoul10(core::stringc(EditAlpha->getText()).c_str());
+			if (alpha > 255)
 				alpha = 255;
+			col.setAlpha(alpha);
 		}
-		col.setAlpha(alpha);
 
-		u32 red=col.getRed();
-		if ( EditRed )
+		if (EditRed)
 		{
-			red = (u32)core::strtol10( core::stringc( EditRed->getText() ).c_str(), 0);
-			if ( red > 255 )
+			u32 red = core::strtoul10(core::stringc(EditRed->getText()).c_str());
+			if (red > 255)
 				red = 255;
+			col.setRed(red);
 		}
-		col.setRed(red);
 
-		u32 green=col.getGreen();
-		if ( EditGreen )
+		if (EditGreen)
 		{
-			green = (u32)core::strtol10( core::stringc( EditGreen->getText() ).c_str(), 0);
-			if ( green > 255 )
+			u32 green = core::strtoul10(core::stringc(EditGreen->getText()).c_str());
+			if (green > 255)
 				green = 255;
+			col.setGreen(green);
 		}
-		col.setGreen(green);
 
-		u32 blue=col.getBlue();
-		if ( EditBlue )
+		if (EditBlue)
 		{
-			blue = (u32)core::strtol10( core::stringc( EditBlue->getText() ).c_str(), 0);
-			if ( blue > 255 )
+			u32 blue = core::strtoul10(core::stringc(EditBlue->getText()).c_str());
+			if (blue > 255)
 				blue = 255;
+			col.setBlue(blue);
 		}
-		col.setBlue(blue);
 
 		return col;
 	}
@@ -315,7 +311,8 @@ public:
 	{
 		ControlAmbientColor->drop();
 		ControlDiffuseColor->drop();
-		ControlEmissiveColor->drop();
+		if ( ControlEmissiveColor )
+			ControlEmissiveColor->drop();
 		ControlSpecularColor->drop();
 	}
 
@@ -350,7 +347,7 @@ public:
 	}
 
 	// Update all changed colors in the light data
-	void updateMaterialColors(video::SLight & lightData)
+	void updateLightColors(video::SLight & lightData)
 	{
 		if ( ControlAmbientColor->isDirty() )
 			lightData.AmbientColor = video::SColorf( ControlAmbientColor->getColor() );
@@ -366,7 +363,8 @@ public:
 		ControlAmbientColor->resetDirty();
 		ControlDiffuseColor->resetDirty();
 		ControlSpecularColor->resetDirty();
-		ControlEmissiveColor->resetDirty();
+		if ( ControlEmissiveColor )
+			ControlEmissiveColor->resetDirty();
 	}
 
 protected:
@@ -408,7 +406,7 @@ public:
 		if ( event.EventType != EET_GUI_EVENT )
 			return false;
 
-		if ( event.Info.GUIEvent.Caller == ComboTexture && event.Info.GUIEvent.EventType == gui::EGET_COMBO_BOX_CHANGED )
+		if ( event.GUIEvent.Caller == ComboTexture && event.GUIEvent.EventType == gui::EGET_COMBO_BOX_CHANGED )
 		{
 			DirtyFlag = true;
 		}
@@ -447,7 +445,7 @@ public:
 		return DirtyFlag;
 	};
 
-	// Put the names of all currenlty loaded textures in a combobox
+	// Put the names of all currently loaded textures in a combobox
 	void updateTextures(video::IVideoDriver * driver)
 	{
 		s32 oldSelected = ComboTexture->getSelected();
@@ -504,6 +502,8 @@ struct SMeshNodeControl
 			TextureControl2->drop();
 		if ( ControlVertexColors )
 			ControlVertexColors->drop();
+		if ( AllColorsControl )
+			AllColorsControl->drop();
 	}
 
 	void init(scene::IMeshSceneNode* node, IrrlichtDevice * device, const core::position2d<s32> & pos, const wchar_t * description)
@@ -670,6 +670,12 @@ struct SLightNodeControl
 	{
 	}
 
+	virtual ~SLightNodeControl()
+	{
+		if ( AllColorsControl )
+			AllColorsControl->drop();
+	}
+
 	void init(scene::ILightSceneNode* node, gui::IGUIEnvironment* guiEnv, const core::position2d<s32> & pos, const wchar_t * description)
 	{
 		if ( Initialized || !node || !guiEnv) // initializing twice or with invalid data not allowed
@@ -687,7 +693,7 @@ struct SLightNodeControl
 			return;
 
 		video::SLight & lightData = SceneNode->getLightData();
-		AllColorsControl->updateMaterialColors(lightData);
+		AllColorsControl->updateLightColors(lightData);
 	}
 
 protected:
@@ -748,11 +754,11 @@ public:
 		{
 			gui::IGUIEnvironment* env = Device->getGUIEnvironment();
 
-			switch(event.Info.GUIEvent.EventType)
+			switch(event.GUIEvent.EventType)
 			{
 				case gui::EGET_MENU_ITEM_SELECTED:
 				{
-					gui::IGUIContextMenu* menu = (gui::IGUIContextMenu*)event.Info.GUIEvent.Caller;
+					gui::IGUIContextMenu* menu = (gui::IGUIContextMenu*)event.GUIEvent.Caller;
 					s32 id = menu->getItemCommandId(menu->getSelectedItem());
 
 					switch(id)
@@ -771,7 +777,7 @@ public:
 				{
 					// load the model file, selected in the file open dialog
 					gui::IGUIFileOpenDialog* dialog =
-						(gui::IGUIFileOpenDialog*)event.Info.GUIEvent.Caller;
+						(gui::IGUIFileOpenDialog*)event.GUIEvent.Caller;
 					loadTexture(io::path(dialog->getFileName()).c_str());
 				}
 				break;
@@ -787,7 +793,7 @@ public:
 protected:
 
 	// Application initialization
-	// returns true when it was succesful initialized, otherwise false.
+	// returns true when it was successful initialized, otherwise false.
 	bool init(int argc, char *argv[])
 	{
 		// ask user for driver
@@ -801,7 +807,7 @@ protected:
 			return false;
 		Device->setWindowCaption( DriverTypeNames[Config.DriverType] );
 		Device->setEventReceiver(this);
-		
+
 		scene::ISceneManager* smgr = Device->getSceneManager();
 		video::IVideoDriver * driver = Device->getVideoDriver ();
 		gui::IGUIEnvironment* guiEnv = Device->getGUIEnvironment();
@@ -811,7 +817,7 @@ protected:
 		gui::IGUIFont* font = guiEnv->getFont("../../media/fonthaettenschweiler.bmp");
 		if (font)
 			skin->setFont(font);
-		
+
 		// remove some alpha value because it makes those menus harder to read otherwise
 		video::SColor col3dHighLight( skin->getColor(gui::EGDC_APP_WORKSPACE) );
 		col3dHighLight.setAlpha(255);
@@ -822,7 +828,7 @@ protected:
 		// Add some textures which are useful to test material settings
 		createDefaultTextures(driver);
 
-		// create a menu 
+		// create a menu
 		gui::IGUIContextMenu * menuBar = guiEnv->addMenu();
 		menuBar->addItem(L"File", -1, true, true);
 
@@ -854,7 +860,7 @@ protected:
 														video::SColorf(1.0f, 1.0f, 1.0f),
 														100.0f);
 		LightControl.init(nodeLight, guiEnv, core::position2d<s32>(270,20), L"light" );
-		
+
 		// one large cube around everything. That's mainly to make the light more obvious.
 		scene::IMeshSceneNode* backgroundCube = smgr->addCubeSceneNode (200.0f, 0, -1, core::vector3df(0, 0, 0),
 										   core::vector3df(45, 0, 0),
@@ -896,7 +902,7 @@ protected:
 				GlobalAmbient->resetDirty();
 			}
 
-			// draw everythings
+			// draw everything
 			video::SColor bkColor( skin->getColor(gui::EGDC_APP_WORKSPACE) );
 			videoDriver->beginScene(true, true, bkColor);
 
@@ -952,7 +958,7 @@ protected:
 			return;
 		const u32 pitch = imageA8R8G8B8->getPitch();
 
-		// some nice caro with 9 typical colors
+		// some nice square-pattern with 9 typical colors
 		for ( u32 y = 0; y < height; ++ y )
 		{
 			for ( u32 x = 0; x < pitch; ++x )
@@ -1005,6 +1011,8 @@ protected:
 			}
 		}
 		driver->addTexture (io::path("GRAYSCALE_A8R8G8B8"), imageA8R8G8B8);
+
+		imageA8R8G8B8->drop();
 	}
 
 	// Load a texture and make sure nodes know it when more textures are available.

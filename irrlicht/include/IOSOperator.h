@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2009 Nikolaus Gebhardt
+// Copyright (C) 2002-2012 Nikolaus Gebhardt
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
@@ -6,6 +6,7 @@
 #define __I_OS_OPERATOR_H_INCLUDED__
 
 #include "IReferenceCounted.h"
+#include "irrString.h"
 
 namespace irr
 {
@@ -14,27 +15,22 @@ namespace irr
 class IOSOperator : public virtual IReferenceCounted
 {
 public:
-
-	//! Destructor
-	virtual ~IOSOperator() {}
+	//! Get the current operation system version as string.
+	virtual const core::stringc& getOperatingSystemVersion() const = 0;
 
 	//! Get the current operation system version as string.
-	virtual const wchar_t* getOperationSystemVersion() const = 0;
+	/** \deprecated Use getOperatingSystemVersion instead. This method will be removed in Irrlicht 1.9. */
+	_IRR_DEPRECATED_ const wchar_t* getOperationSystemVersion() const
+	{
+		return core::stringw(getOperatingSystemVersion()).c_str();
+	}
 
 	//! Copies text to the clipboard
-#if defined(_IRR_IMPROVE_UNICODE)
-	virtual void copyToClipboard(const wchar_t* text) const = 0;
-#else
 	virtual void copyToClipboard(const c8* text) const = 0;
-#endif
 
 	//! Get text from the clipboard
 	/** \return Returns 0 if no string is in there. */
-#if defined(_IRR_IMPROVE_UNICODE)
-	virtual const wchar_t* getTextFromClipboard() const = 0;
-#else
 	virtual const c8* getTextFromClipboard() const = 0;
-#endif
 
 	//! Get the processor speed in megahertz
 	/** \param MHz The integer variable to store the speed in.
@@ -52,4 +48,3 @@ public:
 } // end namespace
 
 #endif
-

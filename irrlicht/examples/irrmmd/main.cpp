@@ -35,8 +35,8 @@ public:
 	virtual bool OnEvent(const SEvent& event)
 	{
 		if (event.EventType == EET_KEY_INPUT_EVENT &&
-				event.Info.KeyInput.PressedDown){
-			switch(event.Info.KeyInput.Key)
+				event.KeyInput.PressedDown){
+			switch(event.KeyInput.Key)
 			{
 			case 'O':
 				device_->getGUIEnvironment()->addFileOpenDialog(
@@ -49,14 +49,14 @@ public:
 				break;
 
 			default:
-				std::cout << event.Info.KeyInput.Key << std::endl;
+				std::cout << event.KeyInput.Key << std::endl;
 			}
 		}
 		else if (event.EventType == EET_GUI_EVENT){
-			if(event.Info.GUIEvent.EventType==gui::EGET_FILE_SELECTED){
+			if(event.GUIEvent.EventType==gui::EGET_FILE_SELECTED){
 				// load the model file, selected in the file open dialog
 				gui::IGUIFileOpenDialog* dialog =
-					(gui::IGUIFileOpenDialog*)event.Info.GUIEvent.Caller;
+					(gui::IGUIFileOpenDialog*)event.GUIEvent.Caller;
 				scene::IAnimatedMesh *m=loadMesh(dialog->getFileName());
 				if(m){
 					setMesh(m);

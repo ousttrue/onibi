@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2009 Nikolaus Gebhardt
+// Copyright (C) 2002-2012 Nikolaus Gebhardt
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
@@ -37,13 +37,8 @@ namespace irr
 		{
 			SEvent event;
 			event.EventType = EET_LOG_TEXT_EVENT;
-#if defined(_IRR_IMPROVE_UNICODE)
-			core::stringw s = text;
-			event.Info.LogEvent.Text = s.c_str();
-#else
-			event.Info.LogEvent.Text = text;
-#endif
-			event.Info.LogEvent.Level = ll;
+			event.LogEvent.Text = text;
+			event.LogEvent.Level = ll;
 			if (Receiver->OnEvent(event))
 				return;
 		}
@@ -70,22 +65,8 @@ namespace irr
 		if (ll < LogLevel)
 			return;
 
-#if defined(_IRR_IMPROVE_UNICODE)
-		if (Receiver)
-		{
-			SEvent event;
-			event.EventType = EET_LOG_TEXT_EVENT;
-			event.Info.LogEvent.Text = text;
-			event.Info.LogEvent.Level = ll;
-			if (Receiver->OnEvent(event))
-				return;
-		}
-
-		os::Printer::print(text);
-#else
 		core::stringc s = text;
 		log(s.c_str(), ll);
-#endif
 	}
 
 
@@ -95,16 +76,9 @@ namespace irr
 		if (ll < LogLevel)
 			return;
 
-#if defined(_IRR_IMPROVE_UNICODE)
-		core::stringw s = text;
-		s += L": ";
-		s += hint;
-		log (s.c_str(), ll);
-#else
 		core::stringc s1 = text;
 		core::stringc s2 = hint;
 		log(s1.c_str(), s2.c_str(), ll);
-#endif
 	}
 
 	//! Prints out a text into the log

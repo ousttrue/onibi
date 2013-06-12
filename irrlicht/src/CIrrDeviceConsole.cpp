@@ -1,4 +1,4 @@
-// Copyright (C) 2009-2010 Gaz Davidson
+// Copyright (C) 2009-2012 Gaz Davidson
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
@@ -77,11 +77,14 @@ CIrrDeviceConsole::CIrrDeviceConsole(const SIrrlichtCreationParameters& params)
 
 	if (CreationParams.Fullscreen)
 	{
+// Some mingw versions lack this define, so avoid it in case it does not exist
+#if (_WIN32_WINNT >= 0x0501) && defined(CONSOLE_FULLSCREEN_MODE)
 		if (SetConsoleDisplayMode(WindowsSTDOut, CONSOLE_FULLSCREEN_MODE, Dimensions))
 		{
 			CreationParams.WindowSize.Width = Dimensions->X;
 			CreationParams.WindowSize.Width = Dimensions->Y;
 		}
+#endif
 	}
 	else
 	{
@@ -124,7 +127,7 @@ CIrrDeviceConsole::CIrrDeviceConsole(const SIrrlichtCreationParameters& params)
 
 	case video::EDT_BURNINGSVIDEO:
 		#ifdef _IRR_COMPILE_WITH_BURNINGSVIDEO_
-		VideoDriver = video::createSoftwareDriver2(CreationParams.WindowSize, CreationParams.Fullscreen, FileSystem, this);
+		VideoDriver = video::createBurningVideoDriver(CreationParams, FileSystem, this);
 		#else
 		os::Printer::log("Burning's Video driver was not compiled in.", ELL_ERROR);
 		#endif
@@ -224,11 +227,11 @@ bool CIrrDeviceConsole::run()
 		{
 			SEvent e;
 			e.EventType            = EET_KEY_INPUT_EVENT;
-			e.Info.KeyInput.PressedDown = (in.Event.KeyEvent.bKeyDown == TRUE);
-			e.Info.KeyInput.Control     = (in.Event.KeyEvent.dwControlKeyState & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) != 0;
-			e.Info.KeyInput.Shift       = (in.Event.KeyEvent.dwControlKeyState & SHIFT_PRESSED) != 0;
-			e.Info.KeyInput.Key         = EKEY_CODE(in.Event.KeyEvent.wVirtualKeyCode);
-			e.Info.KeyInput.Char        = in.Event.KeyEvent.uChar.UnicodeChar;
+			e.KeyInput.PressedDown = (in.Event.KeyEvent.bKeyDown == TRUE);
+			e.KeyInput.Control     = (in.Event.KeyEvent.dwControlKeyState & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) != 0;
+			e.KeyInput.Shift       = (in.Event.KeyEvent.dwControlKeyState & SHIFT_PRESSED) != 0;
+			e.KeyInput.Key         = EKEY_CODE(in.Event.KeyEvent.wVirtualKeyCode);
+			e.KeyInput.Char        = in.Event.KeyEvent.uChar.UnicodeChar;
 			postEventFromUser(e);
 			break;
 		}
@@ -236,10 +239,10 @@ bool CIrrDeviceConsole::run()
 		{
 			SEvent e;
 			e.EventType        = EET_MOUSE_INPUT_EVENT;
-			e.Info.MouseInput.X     = in.Event.MouseEvent.dwMousePosition.X;
-			e.Info.MouseInput.Y     = in.Event.MouseEvent.dwMousePosition.Y;
-			e.Info.MouseInput.Wheel = 0.f;
-			e.Info.MouseInput.ButtonStates =
+			e.MouseInput.X     = in.Event.MouseEvent.dwMousePosition.X;
+			e.MouseInput.Y     = in.Event.MouseEvent.dwMousePosition.Y;
+			e.MouseInput.Wheel = 0.f;
+			e.MouseInput.ButtonStates =
 				( (in.Event.MouseEvent.dwButtonState & FROM_LEFT_1ST_BUTTON_PRESSED) ? EMBSM_LEFT   : 0 ) |
 				( (in.Event.MouseEvent.dwButtonState & RIGHTMOST_BUTTON_PRESSED)     ? EMBSM_RIGHT  : 0 ) |
 				( (in.Event.MouseEvent.dwButtonState & FROM_LEFT_2ND_BUTTON_PRESSED) ? EMBSM_MIDDLE : 0 ) |
@@ -248,40 +251,40 @@ bool CIrrDeviceConsole::run()
 
 			if (in.Event.MouseEvent.dwEventFlags & MOUSE_MOVED)
 			{
-				CursorControl->setPosition(core::position2di(e.Info.MouseInput.X, e.Info.MouseInput.Y));
+				CursorControl->setPosition(core::position2di(e.MouseInput.X, e.MouseInput.Y));
 
 				// create mouse moved event
-				e.Info.MouseInput.Event = EMIE_MOUSE_MOVED;
+				e.MouseInput.Event = EMIE_MOUSE_MOVED;
 				postEventFromUser(e);
 			}
 
 			if (in.Event.MouseEvent.dwEventFlags & MOUSE_WHEELED)
 			{
-				e.Info.MouseInput.Event = EMIE_MOUSE_WHEEL;
-				e.Info.MouseInput.Wheel = (in.Event.MouseEvent.dwButtonState & 0xFF000000) ? -1.0f : 1.0f;
+				e.MouseInput.Event = EMIE_MOUSE_WHEEL;
+				e.MouseInput.Wheel = (in.Event.MouseEvent.dwButtonState & 0xFF000000) ? -1.0f : 1.0f;
 				postEventFromUser(e);
 			}
 
-			if ( (MouseButtonStates & EMBSM_LEFT) != (e.Info.MouseInput.ButtonStates & EMBSM_LEFT) )
+			if ( (MouseButtonStates & EMBSM_LEFT) != (e.MouseInput.ButtonStates & EMBSM_LEFT) )
 			{
-				e.Info.MouseInput.Event = (e.Info.MouseInput.ButtonStates & EMBSM_LEFT) ? EMIE_LMOUSE_PRESSED_DOWN : EMIE_LMOUSE_LEFT_UP;
+				e.MouseInput.Event = (e.MouseInput.ButtonStates & EMBSM_LEFT) ? EMIE_LMOUSE_PRESSED_DOWN : EMIE_LMOUSE_LEFT_UP;
 				postEventFromUser(e);
 			}
 
-			if ( (MouseButtonStates & EMBSM_RIGHT) != (e.Info.MouseInput.ButtonStates & EMBSM_RIGHT) )
+			if ( (MouseButtonStates & EMBSM_RIGHT) != (e.MouseInput.ButtonStates & EMBSM_RIGHT) )
 			{
-				e.Info.MouseInput.Event = (e.Info.MouseInput.ButtonStates & EMBSM_RIGHT) ? EMIE_RMOUSE_PRESSED_DOWN : EMIE_RMOUSE_LEFT_UP;
+				e.MouseInput.Event = (e.MouseInput.ButtonStates & EMBSM_RIGHT) ? EMIE_RMOUSE_PRESSED_DOWN : EMIE_RMOUSE_LEFT_UP;
 				postEventFromUser(e);
 			}
 
-			if ( (MouseButtonStates & EMBSM_MIDDLE) != (e.Info.MouseInput.ButtonStates & EMBSM_MIDDLE) )
+			if ( (MouseButtonStates & EMBSM_MIDDLE) != (e.MouseInput.ButtonStates & EMBSM_MIDDLE) )
 			{
-				e.Info.MouseInput.Event = (e.Info.MouseInput.ButtonStates & EMBSM_MIDDLE) ? EMIE_MMOUSE_PRESSED_DOWN : EMIE_MMOUSE_LEFT_UP;
+				e.MouseInput.Event = (e.MouseInput.ButtonStates & EMBSM_MIDDLE) ? EMIE_MMOUSE_PRESSED_DOWN : EMIE_MMOUSE_LEFT_UP;
 				postEventFromUser(e);
 			}
 
 			// save current button states
-			MouseButtonStates = e.Info.MouseInput.ButtonStates;
+			MouseButtonStates = e.MouseInput.ButtonStates;
 
 			break;
 		}

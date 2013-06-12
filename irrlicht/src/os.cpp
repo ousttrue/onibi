@@ -1,8 +1,6 @@
-// Copyright (C) 2002-2009 Nikolaus Gebhardt
+// Copyright (C) 2002-2012 Nikolaus Gebhardt
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
-
-#include <locale.h>
 
 #include "os.h"
 #include "irrString.h"
@@ -17,6 +15,9 @@
 	#include <stdlib.h>
 	#define bswap_16(X) _byteswap_ushort(X)
 	#define bswap_32(X) _byteswap_ulong(X)
+#if (_MSC_VER >= 1400)
+	#define localtime _localtime_s
+#endif
 #elif defined(_IRR_OSX_PLATFORM_)
 	#include <libkern/OSByteOrder.h>
 	#define bswap_16(X) OSReadSwapInt16(&X,0)
@@ -57,6 +58,7 @@ namespace os
 #else
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <time.h>
 #endif
 
 namespace irr
@@ -71,37 +73,29 @@ namespace os
 		tmp += L"\n";
 		OutputDebugStringW(tmp.c_str());
 #else
-		OutputDebugStringA(message);
-		OutputDebugStringA("\n");
-		printf("%s\n", message);
+		core::stringc tmp(message);
+		tmp += "\n";
+		OutputDebugStringA(tmp.c_str());
+		printf("%s", tmp.c_str());
 #endif
 	}
-
-#if defined(_IRR_IMPROVE_UNICODE)
-	//! prints a debuginfo string
-	void Printer::print(const wchar_t* message)
-	{
-		OutputDebugStringW(message);
-		OutputDebugStringW(L"\n");
-		//wprintf cannot display unicode string on console. need converting from widechar to multibyte. so set locale...hmm
-		_wsetlocale(LC_CTYPE, L"");
-		wprintf(L"%ws\n", message);
-	}
-#endif
 
 	static LARGE_INTEGER HighPerformanceFreq;
 	static BOOL HighPerformanceTimerSupport = FALSE;
 	static BOOL MultiCore = FALSE;
 
-	void Timer::initTimer()
+	void Timer::initTimer(bool usePerformanceTimer)
 	{
 #if !defined(_WIN32_WCE) && !defined (_IRR_XBOX_PLATFORM_)
-		// disable hires timer on multiple core systems, bios bugs result in bad hires timers.
+		// workaround for hires timer on multiple core systems, bios bugs result in bad hires timers.
 		SYSTEM_INFO sysinfo;
 		GetSystemInfo(&sysinfo);
 		MultiCore = (sysinfo.dwNumberOfProcessors > 1);
 #endif
-		HighPerformanceTimerSupport = QueryPerformanceFrequency(&HighPerformanceFreq);
+		if (usePerformanceTimer)
+			HighPerformanceTimerSupport = QueryPerformanceFrequency(&HighPerformanceFreq);
+		else
+			HighPerformanceTimerSupport = FALSE;
 		initVirtualTimer();
 	}
 
@@ -112,7 +106,7 @@ namespace os
 #if !defined(_WIN32_WCE) && !defined (_IRR_XBOX_PLATFORM_)
 			// Avoid potential timing inaccuracies across multiple cores by
 			// temporarily setting the affinity of this process to one core.
-			DWORD_PTR affinityMask;
+			DWORD_PTR affinityMask=0;
 			if(MultiCore)
 				affinityMask = SetThreadAffinityMask(GetCurrentThread(), 1);
 #endif
@@ -156,7 +150,7 @@ namespace os
 		printf("%s\n", message);
 	}
 
-	void Timer::initTimer()
+	void Timer::initTimer(bool usePerformanceTimer)
 	{
 		initVirtualTimer();
 	}
@@ -167,7 +161,6 @@ namespace os
 		gettimeofday(&tv, 0);
 		return (u32)(tv.tv_sec * 1000) + (tv.tv_usec / 1000);
 	}
-
 } // end namespace os
 
 #endif // end linux / windows
@@ -201,20 +194,6 @@ namespace os
 			Logger->log(message, hint.c_str(), ll);
 	}
 
-#if defined(_IRR_IMPROVE_UNICODE)
-	void Printer::log(const wchar_t* message, const wchar_t* hint, ELOG_LEVEL ll)
-	{
-		if (Logger)
-			Logger->log(message, hint, ll);
-	}
-
-	void Printer::log(const wchar_t* message, const io::path& hint, ELOG_LEVEL ll)
-	{
-		if (Logger)
-			Logger->log(message, hint.c_str(), ll);
-	}
-#endif
-
 	// our Randomizer is not really os specific, so we
 	// code one for all, which should work on every platform the same,
 	// which is desireable.
@@ -224,21 +203,29 @@ namespace os
 	//! generates a pseudo random number
 	s32 Randomizer::rand()
 	{
-		const s32 m = 2147483399;	// a non-Mersenne prime
-		const s32 a = 40692;		// another spectral success story
-		const s32 q = m/a;
-		const s32 r = m%a;		// again less than q
-
+		// (a*seed)%m with Schrage's method
 		seed = a * (seed%q) - r* (seed/q);
-		if (seed<0) seed += m;
+		if (seed<0)
+			seed += m;
 
 		return seed;
 	}
 
-	//! resets the randomizer
-	void Randomizer::reset()
+	//! generates a pseudo random number
+	f32 Randomizer::frand()
 	{
-		seed = 0x0f0f0f0f;
+		return rand()*(1.f/rMax);
+	}
+
+	s32 Randomizer::randMax()
+	{
+		return rMax;
+	}
+
+	//! resets the randomizer
+	void Randomizer::reset(s32 value)
+	{
+		seed = value;
 	}
 
 
@@ -250,6 +237,28 @@ namespace os
 	u32 Timer::LastVirtualTime = 0;
 	u32 Timer::StartRealTime = 0;
 	u32 Timer::StaticTime = 0;
+
+	//! Get real time and date in calendar form
+	ITimer::RealTimeDate Timer::getRealTimeAndDate()
+	{
+		time_t rawtime;
+		time(&rawtime);
+
+		struct tm * timeinfo;
+		timeinfo = localtime(&rawtime);
+
+		ITimer::RealTimeDate date;
+		date.Hour=(u32)timeinfo->tm_hour;
+		date.Minute=(u32)timeinfo->tm_min;
+		date.Second=(u32)timeinfo->tm_sec;
+		date.Day=(u32)timeinfo->tm_mday;
+		date.Month=(u32)timeinfo->tm_mon+1;
+		date.Year=(u32)timeinfo->tm_year+1900;
+		date.Weekday=(ITimer::EWeekday)timeinfo->tm_wday;
+		date.Yearday=(u32)timeinfo->tm_yday+1;
+		date.IsDST=timeinfo->tm_isdst != 0;
+		return date;
+	}
 
 	//! returns current virtual time
 	u32 Timer::getTime()

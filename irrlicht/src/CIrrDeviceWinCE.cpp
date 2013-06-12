@@ -1,4 +1,4 @@
-// Copyright (C) 2002-2010 Nikolaus Gebhardt
+// Copyright (C) 2002-2012 Nikolaus Gebhardt
 // This file is part of the "Irrlicht Engine".
 // For conditions of distribution and use, see copyright notice in irrlicht.h
 
@@ -28,15 +28,13 @@ namespace irr
 	namespace video
 	{
 		#ifdef _IRR_COMPILE_WITH_DIRECT3D_8_
-		IVideoDriver* createDirectX8Driver(const core::dimension2d<s32>& screenSize, HWND window,
-			u32 bits, bool fullscreen, bool stencilbuffer, io::IFileSystem* io,
-			bool pureSoftware, bool highPrecisionFPU, bool vsync, bool antiAlias);
+		IVideoDriver* createDirectX8Driver(const irr::SIrrlichtCreationParameters& params,
+			io::IFileSystem* io, HWND window);
 		#endif
 
 		#ifdef _IRR_COMPILE_WITH_DIRECT3D_9_
-		IVideoDriver* createDirectX9Driver(const core::dimension2d<s32>& screenSize, HWND window,
-			u32 bits, bool fullscreen, bool stencilbuffer, io::IFileSystem* io,
-			bool pureSoftware, bool highPrecisionFPU, bool vsync, bool antiAlias);
+		IVideoDriver* createDirectX9Driver(const irr::SIrrlichtCreationParameters& params,
+			io::IFileSystem* io, HWND window);
 		#endif
 
 		#ifdef _IRR_COMPILE_WITH_OPENGL_
@@ -119,21 +117,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_MOUSEWHEEL:
 		event.EventType = irr::EET_MOUSE_INPUT_EVENT;
-		event.Info.MouseInput.Wheel = ((irr::f32)((short)HIWORD(wParam))) / (irr::f32)WHEEL_DELTA;
-		event.Info.MouseInput.Event = irr::EMIE_MOUSE_WHEEL;
+		event.MouseInput.Wheel = ((irr::f32)((short)HIWORD(wParam))) / (irr::f32)WHEEL_DELTA;
+		event.MouseInput.Event = irr::EMIE_MOUSE_WHEEL;
 
 		POINT p; // fixed by jox
 		p.x = 0; p.y = 0;
 		ClientToScreen(hWnd, &p);
-		event.Info.MouseInput.X = LOWORD(lParam) - p.x;
-		event.Info.MouseInput.Y = HIWORD(lParam) - p.y;
-		event.Info.MouseInput.Shift = ((LOWORD(wParam) & MK_SHIFT) != 0);
-		event.Info.MouseInput.Control = ((LOWORD(wParam) & MK_CONTROL) != 0);
+		event.MouseInput.X = LOWORD(lParam) - p.x;
+		event.MouseInput.Y = HIWORD(lParam) - p.y;
+		event.MouseInput.Shift = ((LOWORD(wParam) & MK_SHIFT) != 0);
+		event.MouseInput.Control = ((LOWORD(wParam) & MK_CONTROL) != 0);
 		// left and right mouse buttons
-		event.Info.MouseInput.ButtonStates = wParam & ( MK_LBUTTON | MK_RBUTTON);
+		event.MouseInput.ButtonStates = wParam & ( MK_LBUTTON | MK_RBUTTON);
 		// middle and extra buttons
 		if (wParam & MK_MBUTTON)
-			event.Info.MouseInput.ButtonStates |= irr::EMBSM_MIDDLE;
+			event.MouseInput.ButtonStates |= irr::EMBSM_MIDDLE;
 
 		dev = getDeviceFromHWnd(hWnd);
 		if (dev)
@@ -144,16 +142,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		ClickCount++;
 		SetCapture(hWnd);
 		event.EventType = irr::EET_MOUSE_INPUT_EVENT;
-		event.Info.MouseInput.Event = irr::EMIE_LMOUSE_PRESSED_DOWN;
-		event.Info.MouseInput.X = (short)LOWORD(lParam);
-		event.Info.MouseInput.Y = (short)HIWORD(lParam);
-		event.Info.MouseInput.Shift = ((LOWORD(wParam) & MK_SHIFT) != 0);
-		event.Info.MouseInput.Control = ((LOWORD(wParam) & MK_CONTROL) != 0);
+		event.MouseInput.Event = irr::EMIE_LMOUSE_PRESSED_DOWN;
+		event.MouseInput.X = (short)LOWORD(lParam);
+		event.MouseInput.Y = (short)HIWORD(lParam);
+		event.MouseInput.Shift = ((LOWORD(wParam) & MK_SHIFT) != 0);
+		event.MouseInput.Control = ((LOWORD(wParam) & MK_CONTROL) != 0);
 		// left and right mouse buttons
-		event.Info.MouseInput.ButtonStates = wParam & ( MK_LBUTTON | MK_RBUTTON);
+		event.MouseInput.ButtonStates = wParam & ( MK_LBUTTON | MK_RBUTTON);
 		// middle and extra buttons
 		if (wParam & MK_MBUTTON)
-			event.Info.MouseInput.ButtonStates |= irr::EMBSM_MIDDLE;
+			event.MouseInput.ButtonStates |= irr::EMBSM_MIDDLE;
 
 		dev = getDeviceFromHWnd(hWnd);
 		if (dev)
@@ -168,16 +166,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			ReleaseCapture();
 		}
 		event.EventType = irr::EET_MOUSE_INPUT_EVENT;
-		event.Info.MouseInput.Event = irr::EMIE_LMOUSE_LEFT_UP;
-		event.Info.MouseInput.X = (short)LOWORD(lParam);
-		event.Info.MouseInput.Y = (short)HIWORD(lParam);
-		event.Info.MouseInput.Shift = ((LOWORD(wParam) & MK_SHIFT) != 0);
-		event.Info.MouseInput.Control = ((LOWORD(wParam) & MK_CONTROL) != 0);
+		event.MouseInput.Event = irr::EMIE_LMOUSE_LEFT_UP;
+		event.MouseInput.X = (short)LOWORD(lParam);
+		event.MouseInput.Y = (short)HIWORD(lParam);
+		event.MouseInput.Shift = ((LOWORD(wParam) & MK_SHIFT) != 0);
+		event.MouseInput.Control = ((LOWORD(wParam) & MK_CONTROL) != 0);
 		// left and right mouse buttons
-		event.Info.MouseInput.ButtonStates = wParam & ( MK_LBUTTON | MK_RBUTTON);
+		event.MouseInput.ButtonStates = wParam & ( MK_LBUTTON | MK_RBUTTON);
 		// middle and extra buttons
 		if (wParam & MK_MBUTTON)
-			event.Info.MouseInput.ButtonStates |= irr::EMBSM_MIDDLE;
+			event.MouseInput.ButtonStates |= irr::EMBSM_MIDDLE;
 
 		dev = getDeviceFromHWnd(hWnd);
 		if (dev)
@@ -188,16 +186,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		ClickCount++;
 		SetCapture(hWnd);
 		event.EventType = irr::EET_MOUSE_INPUT_EVENT;
-		event.Info.MouseInput.Event = irr::EMIE_RMOUSE_PRESSED_DOWN;
-		event.Info.MouseInput.X = (short)LOWORD(lParam);
-		event.Info.MouseInput.Y = (short)HIWORD(lParam);
-		event.Info.MouseInput.Shift = ((LOWORD(wParam) & MK_SHIFT) != 0);
-		event.Info.MouseInput.Control = ((LOWORD(wParam) & MK_CONTROL) != 0);
+		event.MouseInput.Event = irr::EMIE_RMOUSE_PRESSED_DOWN;
+		event.MouseInput.X = (short)LOWORD(lParam);
+		event.MouseInput.Y = (short)HIWORD(lParam);
+		event.MouseInput.Shift = ((LOWORD(wParam) & MK_SHIFT) != 0);
+		event.MouseInput.Control = ((LOWORD(wParam) & MK_CONTROL) != 0);
 		// left and right mouse buttons
-		event.Info.MouseInput.ButtonStates = wParam & ( MK_LBUTTON | MK_RBUTTON);
+		event.MouseInput.ButtonStates = wParam & ( MK_LBUTTON | MK_RBUTTON);
 		// middle and extra buttons
 		if (wParam & MK_MBUTTON)
-			event.Info.MouseInput.ButtonStates |= irr::EMBSM_MIDDLE;
+			event.MouseInput.ButtonStates |= irr::EMBSM_MIDDLE;
 
 		dev = getDeviceFromHWnd(hWnd);
 		if (dev)
@@ -212,16 +210,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			ReleaseCapture();
 		}
 		event.EventType = irr::EET_MOUSE_INPUT_EVENT;
-		event.Info.MouseInput.Event = irr::EMIE_RMOUSE_LEFT_UP;
-		event.Info.MouseInput.X = (short)LOWORD(lParam);
-		event.Info.MouseInput.Y = (short)HIWORD(lParam);
-		event.Info.MouseInput.Shift = ((LOWORD(wParam) & MK_SHIFT) != 0);
-		event.Info.MouseInput.Control = ((LOWORD(wParam) & MK_CONTROL) != 0);
+		event.MouseInput.Event = irr::EMIE_RMOUSE_LEFT_UP;
+		event.MouseInput.X = (short)LOWORD(lParam);
+		event.MouseInput.Y = (short)HIWORD(lParam);
+		event.MouseInput.Shift = ((LOWORD(wParam) & MK_SHIFT) != 0);
+		event.MouseInput.Control = ((LOWORD(wParam) & MK_CONTROL) != 0);
 		// left and right mouse buttons
-		event.Info.MouseInput.ButtonStates = wParam & ( MK_LBUTTON | MK_RBUTTON);
+		event.MouseInput.ButtonStates = wParam & ( MK_LBUTTON | MK_RBUTTON);
 		// middle and extra buttons
 		if (wParam & MK_MBUTTON)
-			event.Info.MouseInput.ButtonStates |= irr::EMBSM_MIDDLE;
+			event.MouseInput.ButtonStates |= irr::EMBSM_MIDDLE;
 
 		dev = getDeviceFromHWnd(hWnd);
 		if (dev)
@@ -232,16 +230,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		ClickCount++;
 		SetCapture(hWnd);
 		event.EventType = irr::EET_MOUSE_INPUT_EVENT;
-		event.Info.MouseInput.Event = irr::EMIE_MMOUSE_PRESSED_DOWN;
-		event.Info.MouseInput.X = (short)LOWORD(lParam);
-		event.Info.MouseInput.Y = (short)HIWORD(lParam);
-		event.Info.MouseInput.Shift = ((LOWORD(wParam) & MK_SHIFT) != 0);
-		event.Info.MouseInput.Control = ((LOWORD(wParam) & MK_CONTROL) != 0);
+		event.MouseInput.Event = irr::EMIE_MMOUSE_PRESSED_DOWN;
+		event.MouseInput.X = (short)LOWORD(lParam);
+		event.MouseInput.Y = (short)HIWORD(lParam);
+		event.MouseInput.Shift = ((LOWORD(wParam) & MK_SHIFT) != 0);
+		event.MouseInput.Control = ((LOWORD(wParam) & MK_CONTROL) != 0);
 		// left and right mouse buttons
-		event.Info.MouseInput.ButtonStates = wParam & ( MK_LBUTTON | MK_RBUTTON);
+		event.MouseInput.ButtonStates = wParam & ( MK_LBUTTON | MK_RBUTTON);
 		// middle and extra buttons
 		if (wParam & MK_MBUTTON)
-			event.Info.MouseInput.ButtonStates |= irr::EMBSM_MIDDLE;
+			event.MouseInput.ButtonStates |= irr::EMBSM_MIDDLE;
 
 		dev = getDeviceFromHWnd(hWnd);
 		if (dev)
@@ -256,16 +254,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			ReleaseCapture();
 		}
 		event.EventType = irr::EET_MOUSE_INPUT_EVENT;
-		event.Info.MouseInput.Event = irr::EMIE_MMOUSE_LEFT_UP;
-		event.Info.MouseInput.X = (short)LOWORD(lParam);
-		event.Info.MouseInput.Y = (short)HIWORD(lParam);
-		event.Info.MouseInput.Shift = ((LOWORD(wParam) & MK_SHIFT) != 0);
-		event.Info.MouseInput.Control = ((LOWORD(wParam) & MK_CONTROL) != 0);
+		event.MouseInput.Event = irr::EMIE_MMOUSE_LEFT_UP;
+		event.MouseInput.X = (short)LOWORD(lParam);
+		event.MouseInput.Y = (short)HIWORD(lParam);
+		event.MouseInput.Shift = ((LOWORD(wParam) & MK_SHIFT) != 0);
+		event.MouseInput.Control = ((LOWORD(wParam) & MK_CONTROL) != 0);
 		// left and right mouse buttons
-		event.Info.MouseInput.ButtonStates = wParam & ( MK_LBUTTON | MK_RBUTTON);
+		event.MouseInput.ButtonStates = wParam & ( MK_LBUTTON | MK_RBUTTON);
 		// middle and extra buttons
 		if (wParam & MK_MBUTTON)
-			event.Info.MouseInput.ButtonStates |= irr::EMBSM_MIDDLE;
+			event.MouseInput.ButtonStates |= irr::EMBSM_MIDDLE;
 
 		dev = getDeviceFromHWnd(hWnd);
 		if (dev)
@@ -274,16 +272,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_MOUSEMOVE:
 		event.EventType = irr::EET_MOUSE_INPUT_EVENT;
-		event.Info.MouseInput.Event = irr::EMIE_MOUSE_MOVED;
-		event.Info.MouseInput.X = (short)LOWORD(lParam);
-		event.Info.MouseInput.Y = (short)HIWORD(lParam);
-		event.Info.MouseInput.Shift = ((LOWORD(wParam) & MK_SHIFT) != 0);
-		event.Info.MouseInput.Control = ((LOWORD(wParam) & MK_CONTROL) != 0);
+		event.MouseInput.Event = irr::EMIE_MOUSE_MOVED;
+		event.MouseInput.X = (short)LOWORD(lParam);
+		event.MouseInput.Y = (short)HIWORD(lParam);
+		event.MouseInput.Shift = ((LOWORD(wParam) & MK_SHIFT) != 0);
+		event.MouseInput.Control = ((LOWORD(wParam) & MK_CONTROL) != 0);
 		// left and right mouse buttons
-		event.Info.MouseInput.ButtonStates = wParam & ( MK_LBUTTON | MK_RBUTTON);
+		event.MouseInput.ButtonStates = wParam & ( MK_LBUTTON | MK_RBUTTON);
 		// middle and extra buttons
 		if (wParam & MK_MBUTTON)
-			event.Info.MouseInput.ButtonStates |= irr::EMBSM_MIDDLE;
+			event.MouseInput.ButtonStates |= irr::EMBSM_MIDDLE;
 
 		dev = getDeviceFromHWnd(hWnd);
 		if (dev)
@@ -297,17 +295,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_KEYUP:
 		{
 			event.EventType = irr::EET_KEY_INPUT_EVENT;
-			event.Info.KeyInput.Key = (irr::EKEY_CODE)wParam;
-			event.Info.KeyInput.PressedDown = (message==WM_KEYDOWN || message == WM_SYSKEYDOWN);
+			event.KeyInput.Key = (irr::EKEY_CODE)wParam;
+			event.KeyInput.PressedDown = (message==WM_KEYDOWN || message == WM_SYSKEYDOWN);
 			dev = getDeviceFromHWnd(hWnd);
 /*
 			WORD KeyAsc=0;
 			GetKeyboardState(allKeys);
 			ToAscii(wParam,lParam,allKeys,&KeyAsc,0);
 */
-//			event.Info.KeyInput.Shift = ((allKeys[VK_SHIFT] & 0x80)!=0);
-//			event.Info.KeyInput.Control = ((allKeys[VK_CONTROL] & 0x80)!=0);
-//			event.Info.KeyInput.Char = (KeyAsc & 0x00ff); //KeyAsc >= 0 ? KeyAsc : 0;
+//			event.KeyInput.Shift = ((allKeys[VK_SHIFT] & 0x80)!=0);
+//			event.KeyInput.Control = ((allKeys[VK_CONTROL] & 0x80)!=0);
+//			event.KeyInput.Char = (KeyAsc & 0x00ff); //KeyAsc >= 0 ? KeyAsc : 0;
 
 			if (dev)
 				dev->postEventFromUser(event);
@@ -348,7 +346,7 @@ CIrrDeviceWinCE::CIrrDeviceWinCE(const SIrrlichtCreationParameters& params)
 
 	core::stringc winversion;
 	getWindowsVersion(winversion);
-	Operator = new COSOperator(winversion.c_str());
+	Operator = new COSOperator(winversion);
 	os::Printer::log(winversion.c_str(), ELL_INFORMATION);
 
 	HINSTANCE hInstance = GetModuleHandle(0);
@@ -470,8 +468,7 @@ void CIrrDeviceWinCE::createDriver()
 	{
 	case video::EDT_DIRECT3D8:
 		#ifdef _IRR_COMPILE_WITH_DIRECT3D_8_
-		VideoDriver = video::createDirectX8Driver(CreationParams.WindowSize, HWnd, CreationParams.Bits, CreationParams.Fullscreen,
-			CreationParams.Stencilbuffer, FileSystem, false, CreationParams.HighPrecisionFPU, CreationParams.Vsync, CreationParams.AntiAlias);
+		VideoDriver = video::createDirectX8Driver(CreationParams, FileSystem, HWnd);
 		if (!VideoDriver)
 		{
 			os::Printer::log("Could not create DIRECT3D8 Driver.", ELL_ERROR);
@@ -484,8 +481,7 @@ void CIrrDeviceWinCE::createDriver()
 
 	case video::EDT_DIRECT3D9:
 		#ifdef _IRR_COMPILE_WITH_DIRECT3D_9_
-		VideoDriver = video::createDirectX9Driver(CreationParams.WindowSize, HWnd, CreationParams.Bits, CreationParams.Fullscreen,
-			CreationParams.Stencilbuffer, FileSystem, false, CreationParams.HighPrecisionFPU, CreationParams.Vsync, CreationParams.AntiAlias);
+		VideoDriver = video::createDirectX9Driver(CreationParams, FileSystem, HWnd);
 		if (!VideoDriver)
 		{
 			os::Printer::log("Could not create DIRECT3D9 Driver.", ELL_ERROR);
@@ -527,7 +523,7 @@ void CIrrDeviceWinCE::createDriver()
 		#ifdef _IRR_COMPILE_WITH_BURNINGSVIDEO_
 		if (CreationParams.Fullscreen)
 			switchToFullScreen();
-		VideoDriver = video::createSoftwareDriver2(CreationParams.WindowSize, CreationParams.Fullscreen, FileSystem, this);
+		VideoDriver = video::createBurningVideoDriver(CreationParams, FileSystem, this);
 		#else
 		os::Printer::log("Burning's Video driver was not compiled in.", ELL_ERROR);
 		#endif
@@ -710,7 +706,13 @@ void CIrrDeviceWinCE::closeDevice()
 	PeekMessage(&msg, NULL, WM_QUIT, WM_QUIT, PM_REMOVE);
 	PostQuitMessage(0);
 	PeekMessage(&msg, NULL, WM_QUIT, WM_QUIT, PM_REMOVE);
-	DestroyWindow(HWnd);
+	if (!ExternalWindow)
+	{
+		DestroyWindow(HWnd);
+		const fschar_t* ClassName = __TEXT("CIrrDeviceWin32");
+		HINSTANCE hInstance = GetModuleHandle(0);
+		UnregisterClass(ClassName, hInstance);
+	}
 	Close=true;
 }
 

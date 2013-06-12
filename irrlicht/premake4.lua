@@ -3,9 +3,8 @@ solution "Irrlicht"
 configurations { "Release", "Debug" }
 
 flags {
-  --"StaticRuntime",
-  "Unicode",
-  "NoIncrementalLink",
+    "Unicode",
+    "NoIncrementalLink",
 }
 
 buildoptions {}
@@ -13,20 +12,18 @@ buildoptions {}
 defines {
     "UNICODE",
     "_UNICODE",
+    "NO_IRR_USE_NON_SYSTEM_ZLIB_",
+    "NO_IRR_USE_NON_SYSTEM_BZLIB_",
+    "NO_IRR_USE_NON_SYSTEM_LIB_PNG_",
+    "NO_IRR_USE_NON_SYSTEM_JPEG_LIB_",
 }
 
 linkoptions {
-  --"/NODEFAULTLIB:libci.lib",
 }
 
 includedirs {
     "include",
-    "include/io",
-    "include/aesGladman",
-    "include/video",
-    "include/scene",
-    "include/gui",
-
+    "aesGladman/src",
     "../freetype/include", 
     "../zlib",
     "../libpng",
@@ -41,13 +38,18 @@ do
         "WIN32",
         "_WINDOWS",
         "IRRLICHT_EXPORTS",
-        --"_IRR_WCHAR_FILESYSTEM",
+    }
+    includedirs {
+        "$(DXSDK_DIR)/include",
+    }
+    libdirs {
+        "$(DXSDK_DIR)/lib/x86",
     }
 end
 
 configuration "gmake"
 do
-  buildoptions { "-Wall", "-std=c++0x", "-U__STRICT_ANSI__",}
+    buildoptions { "-Wall", "-std=c++0x", "-U__STRICT_ANSI__",}
 end
 
 configuration "gmake Debug"
@@ -68,30 +70,26 @@ end
 
 configuration "Debug"
 do
-  --defines { "DEBUG" }
-  flags { "Symbols" }
-  targetdir "../debug"
-  libdirs {
-    "../debug",
-  }
+    --defines { "DEBUG" }
+    flags { "Symbols" }
+    targetdir "../debug"
+    libdirs {
+        "../debug",
+    }
 end
 
 configuration "Release"
 do
-  defines { "NDEBUG" }
-  flags { "Optimize" }
-  targetdir "../release"
-  libdirs {
-    "../release",
-  }
+    defines { "NDEBUG" }
+    flags { "Optimize" }
+    targetdir "../release"
+    libdirs {
+        "../release",
+    }
 end
 
 configuration {}
 
 dofile "Irrlicht.lua"
-include "io"
 include "aesGladman"
-include "video"
-include "scene"
-include "gui"
 

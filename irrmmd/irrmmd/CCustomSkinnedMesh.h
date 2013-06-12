@@ -39,6 +39,9 @@ public:
 	////////////////////////////////////////////////////////////
 	virtual u32 getFrameCount(void) const;
 	virtual IMesh *getMesh(s32,s32,s32,s32);
+	// ToDO
+	virtual f32 getAnimationSpeed()const{ return 30; }
+	virtual void setAnimationSpeed(f32 s){}
 
 	//! Returns the IMesh interface for a frame.
 	//! owner and jointChildSceneNodes is for skinning.

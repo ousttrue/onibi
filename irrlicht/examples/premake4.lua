@@ -81,7 +81,6 @@ include "22.MaterialViewer"
 include "23.SMeshHandling"
 
 -- DeformableMesh example
-include "DeformableMesh"
 include "irrmmd"
 
 -- IrrlichtML example

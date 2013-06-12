@@ -39,7 +39,7 @@ public:
 		// Remember the mouse state
 		if (event.EventType == irr::EET_MOUSE_INPUT_EVENT)
 		{
-			switch(event.Info.MouseInput.Event)
+			switch(event.MouseInput.Event)
 			{
 			case EMIE_LMOUSE_PRESSED_DOWN:
 				MouseState.LeftButtonDown = true;
@@ -50,8 +50,8 @@ public:
 				break;
 
 			case EMIE_MOUSE_MOVED:
-				MouseState.Position.X = event.Info.MouseInput.X;
-				MouseState.Position.Y = event.Info.MouseInput.Y;
+				MouseState.Position.X = event.MouseInput.X;
+				MouseState.Position.Y = event.MouseInput.Y;
 				break;
 
 			default:
@@ -65,15 +65,15 @@ public:
 		// state of the first joystick, ignoring other joysticks.
 		// This is currently only supported on Windows and Linux.
 		if (event.EventType == irr::EET_JOYSTICK_INPUT_EVENT
-			&& event.Info.JoystickEvent.Joystick == 0)
+			&& event.JoystickEvent.Joystick == 0)
 		{
-			JoystickState = event.Info.JoystickEvent;
+			JoystickState = event.JoystickEvent;
 		}
 
 		return false;
 	}
 
-	const SJoystickEvent & GetJoystickState(void) const
+	const SEvent::SJoystickEvent & GetJoystickState(void) const
 	{
 		return JoystickState;
 	}
@@ -89,7 +89,7 @@ public:
 	}
 
 private:
-	SJoystickEvent JoystickState;
+	SEvent::SJoystickEvent JoystickState;
 };
 
 
@@ -133,15 +133,15 @@ int main()
 
 			switch(joystickInfo[joystick].PovHat)
 			{
-			case POV_HAT_PRESENT:
+			case SJoystickInfo::POV_HAT_PRESENT:
 				std::cout << "present" << std::endl;
 				break;
 
-			case POV_HAT_ABSENT:
+			case SJoystickInfo::POV_HAT_ABSENT:
 				std::cout << "absent" << std::endl;
 				break;
 
-			case POV_HAT_UNKNOWN:
+			case SJoystickInfo::POV_HAT_UNKNOWN:
 			default:
 				std::cout << "unknown" << std::endl;
 				break;
@@ -197,7 +197,7 @@ int main()
 			f32 moveHorizontal = 0.f; // Range is -1.f for full left to +1.f for full right
 			f32 moveVertical = 0.f; // -1.f for full down to +1.f for full up.
 
-			const SJoystickEvent & joystickData = receiver.GetJoystickState();
+			const SEvent::SJoystickEvent & joystickData = receiver.GetJoystickState();
 
 			// We receive the full analog range of the axes, and so have to implement our
 			// own dead zone.  This is an empirical value, since some joysticks have more
@@ -207,12 +207,12 @@ int main()
 			const f32 DEAD_ZONE = 0.05f;
 
 			moveHorizontal =
-				(f32)joystickData.Axis[AXIS_X] / 32767.f;
+				(f32)joystickData.Axis[SEvent::SJoystickEvent::AXIS_X] / 32767.f;
 			if(fabs(moveHorizontal) < DEAD_ZONE)
 				moveHorizontal = 0.f;
 
 			moveVertical =
-				(f32)joystickData.Axis[AXIS_Y] / -32767.f;
+				(f32)joystickData.Axis[SEvent::SJoystickEvent::AXIS_Y] / -32767.f;
 			if(fabs(moveVertical) < DEAD_ZONE)
 				moveVertical = 0.f;
 

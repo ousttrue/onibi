@@ -4,7 +4,7 @@ This example only runs under MS Windows and demonstrates that Irrlicht can
 render inside a win32 window. MFC and .NET Windows.Forms windows are possible,
 too.
 
-In the begining, we create a windows window using the windows API. I'm not
+In the beginning, we create a windows window using the windows API. I'm not
 going to explain this code, because it is windows specific. See the MSDN or a
 windows book for details.
 */
@@ -76,7 +76,7 @@ int main()
 	HINSTANCE hInstance = 0;
 	// create dialog
 
-	const TCHAR* Win32ClassName = TEXT("CIrrlichtWindowsTestDialog");
+	auto Win32ClassName = L"CIrrlichtWindowsTestDialog";
 
 	WNDCLASSEX wcex;
 	wcex.cbSize			= sizeof(WNDCLASSEX);
@@ -100,7 +100,7 @@ int main()
 	int windowWidth = 440;
 	int windowHeight = 380;
 
-	hWnd = CreateWindow( Win32ClassName, TEXT("Irrlicht Win32 window example"),
+	hWnd = CreateWindow( Win32ClassName, L"Irrlicht Win32 window example",
 		style, 100, 100, windowWidth, windowHeight,
 		NULL, NULL, hInstance, NULL);
 
@@ -111,18 +111,18 @@ int main()
 
 	// create ok button
 
-	hOKButton = CreateWindow(TEXT("BUTTON"), TEXT("OK - Close"), WS_CHILD | WS_VISIBLE | BS_TEXT,
+	hOKButton = CreateWindow(L"BUTTON", L"OK - Close", WS_CHILD | WS_VISIBLE | BS_TEXT,
 		windowWidth - 160, windowHeight - 40, 150, 30, hWnd, NULL, hInstance, NULL);
 
 	// create some text
 
-	CreateWindow(TEXT("STATIC"), TEXT("This is Irrlicht running inside a standard Win32 window.\n")
-		TEXT("Also mixing with MFC and .NET Windows.Forms is possible."),
+	CreateWindow(L"STATIC", L"This is Irrlicht running inside a standard Win32 window.\n"\
+		L"Also mixing with MFC and .NET Windows.Forms is possible.",
 		WS_CHILD | WS_VISIBLE, 20, 20, 400, 40, hWnd, NULL, hInstance, NULL);
 
 	// create window to put irrlicht in
 
-	HWND hIrrlichtWindow = CreateWindow(TEXT("BUTTON"), TEXT(""),
+	HWND hIrrlichtWindow = CreateWindow(L"BUTTON", L"",
 			WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
 			50, 80, 320, 220, hWnd, NULL, hInstance, NULL);
 	video::SExposedVideoData videodata((key=='b')?hIrrlichtWindow:0);
@@ -141,6 +141,8 @@ int main()
 		param.WindowId = reinterpret_cast<void*>(hIrrlichtWindow);
 
 	irr::IrrlichtDevice* device = irr::createDeviceEx(param);
+	if (!device)
+		return 1;
 
 	// setup a simple 3d scene
 

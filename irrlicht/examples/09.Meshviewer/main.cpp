@@ -7,7 +7,7 @@ Windows, Toolbars, Menus, ComboBoxes, Tabcontrols, Editboxes, Images,
 MessageBoxes, SkyBoxes, and how to parse XML files with the integrated XML
 reader of the engine.
 
-We start like in most other tutorials: Include all nesessary header files, add
+We start like in most other tutorials: Include all necessary header files, add
 a comment to let the engine be linked with the right .lib file in Visual
 Studio, and declare some global variables. We also add two 'using namespace'
 statements, so we do not need to write the whole names of all classes. In this
@@ -147,8 +147,7 @@ void updateScaleInfo(scene::ISceneNode* model)
 }
 
 /*
-The three following functions do several stuff used by the mesh viewer. The
-first function showAboutText() simply displays a messagebox with a caption and
+Function showAboutText() displays a messagebox with a caption and
 a message text. The texts will be stored in the MessageText and Caption
 variables at startup.
 */
@@ -162,7 +161,7 @@ void showAboutText()
 
 
 /*
-The second function loadModel() loads a model and displays it using an
+Function loadModel() loads a model and displays it using an
 addAnimatedMeshSceneNode and the scene manager. Nothing difficult. It also
 displays a short message box, if the model could not be loaded.
 */
@@ -259,7 +258,7 @@ void loadModel(const c8* fn)
 
 
 /*
-Finally, the third function creates a toolbox window. In this simple mesh
+Function createToolBox() creates a toolbox window. In this simple mesh
 viewer, this toolbox only contains a tab control with three edit boxes for
 changing the scale of the displayed model.
 */
@@ -312,6 +311,7 @@ void createToolBox()
 	env->addStaticText(L":", core::rect<s32>(10,240,150,265), true, false, t1);
 	env->addStaticText(L"Framerate:",
 			core::rect<s32>(12,240,75,265), false, false, t1);
+	// current frame info
 	env->addStaticText(L"", core::rect<s32>(75,240,200,265), false, false, t1,
 			GUI_ID_ANIMATION_INFO);
 	scrollbar = env->addScrollBar(true,
@@ -322,6 +322,10 @@ void createToolBox()
 	scrollbar->setSmallStep(1);
 }
 
+/*
+Function updateToolBox() is called each frame to update dynamic information in 
+the toolbox.
+*/
 void updateToolBox()
 {
 	IGUIEnvironment* env = Device->getGUIEnvironment();
@@ -348,11 +352,55 @@ void updateToolBox()
 	}
 }
 
+void onKillFocus()
+{
+	// Avoid that the FPS-camera continues moving when the user presses alt-tab while 
+	// moving the camera. 
+	const core::list<scene::ISceneNodeAnimator*>& animators = Camera[1]->getAnimators();
+	core::list<irr::scene::ISceneNodeAnimator*>::ConstIterator iter = animators.begin();
+	while ( iter != animators.end() )
+	{
+		if ( (*iter)->getType() == scene::ESNAT_CAMERA_FPS )
+		{
+			// we send a key-down event for all keys used by this animator
+			scene::ISceneNodeAnimatorCameraFPS * fpsAnimator = static_cast<scene::ISceneNodeAnimatorCameraFPS*>(*iter);
+			const core::array<SKeyMap>& keyMap = fpsAnimator->getKeyMap();
+			for ( irr::u32 i=0; i< keyMap.size(); ++i )
+			{
+				irr::SEvent event;
+				event.EventType = EET_KEY_INPUT_EVENT;
+				event.KeyInput.Key = keyMap[i].KeyCode;
+				event.KeyInput.PressedDown = false;
+				fpsAnimator->OnEvent(event);
+			}
+		}
+		++iter;
+	}
+}
+
+/*
+Function hasModalDialog() checks if we currently have a modal dialog open.
+*/
+bool hasModalDialog()
+{
+	if ( !Device )
+		return false;
+	IGUIEnvironment* env = Device->getGUIEnvironment();
+	IGUIElement * focused = env->getFocus();
+	while ( focused )
+	{
+		if ( focused->isVisible() && focused->hasType(EGUIET_MODAL_SCREEN) )
+			return true;
+		focused = focused->getParent();
+	}
+	return false;
+}
+
 /*
 To get all the events sent by the GUI Elements, we need to create an event
 receiver. This one is really simple. If an event occurs, it checks the id of
 the caller and the event type, and starts an action based on these values. For
-example, if a menu item with id GUI_ID_OPEN_MODEL was selected, if opens a file-open-dialog.
+example, if a menu item with id GUI_ID_OPEN_MODEL was selected, it opens a file-open-dialog.
 */
 class MyEventReceiver : public IEventReceiver
 {
@@ -361,29 +409,29 @@ public:
 	{
 		// Escape swaps Camera Input
 		if (event.EventType == EET_KEY_INPUT_EVENT &&
-			event.Info.KeyInput.PressedDown == false)
+			event.KeyInput.PressedDown == false)
 		{
-			if ( OnKeyUp(event.Info.KeyInput.Key) )
+			if ( OnKeyUp(event.KeyInput.Key) )
 				return true;
 		}
 
 		if (event.EventType == EET_GUI_EVENT)
 		{
-			s32 id = event.Info.GUIEvent.Caller->getID();
+			s32 id = event.GUIEvent.Caller->getID();
 			IGUIEnvironment* env = Device->getGUIEnvironment();
 
-			switch(event.Info.GUIEvent.EventType)
+			switch(event.GUIEvent.EventType)
 			{
 			case EGET_MENU_ITEM_SELECTED:
 					// a menu item was clicked
-					OnMenuItemSelected( (IGUIContextMenu*)event.Info.GUIEvent.Caller );
+					OnMenuItemSelected( (IGUIContextMenu*)event.GUIEvent.Caller );
 				break;
 
 			case EGET_FILE_SELECTED:
 				{
 					// load the model file, selected in the file open dialog
 					IGUIFileOpenDialog* dialog =
-						(IGUIFileOpenDialog*)event.Info.GUIEvent.Caller;
+						(IGUIFileOpenDialog*)event.GUIEvent.Caller;
 					loadModel(core::stringc(dialog->getFileName()).c_str());
 				}
 				break;
@@ -393,13 +441,13 @@ public:
 				// control skin transparency
 				if (id == GUI_ID_SKIN_TRANSPARENCY)
 				{
-					const s32 pos = ((IGUIScrollBar*)event.Info.GUIEvent.Caller)->getPos();
+					const s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
 					setSkinTransparency(pos, env->getSkin());
 				}
 				// control animation speed
 				else if (id == GUI_ID_SKIN_ANIMATION_FPS)
 				{
-					const s32 pos = ((IGUIScrollBar*)event.Info.GUIEvent.Caller)->getPos();
+					const s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
 					if (scene::ESNT_ANIMATED_MESH == Model->getType())
 						((scene::IAnimatedMeshSceneNode*)Model)->setAnimationSpeed((f32)pos);
 				}
@@ -410,7 +458,7 @@ public:
 				// control anti-aliasing/filtering
 				if (id == GUI_ID_TEXTUREFILTER)
 				{
-					OnTextureFilterSelected( (IGUIComboBox*)event.Info.GUIEvent.Caller );
+					OnTextureFilterSelected( (IGUIComboBox*)event.GUIEvent.Caller );
 				}
 				break;
 
@@ -476,6 +524,11 @@ public:
 	*/
 	bool OnKeyUp(irr::EKEY_CODE keyCode)
 	{
+		// Don't handle keys if we have a modal dialog open as it would lead 
+		// to unexpected application behaviour for the user.
+		if ( hasModalDialog() )
+			return false;
+		
 		if (keyCode == irr::KEY_ESCAPE)
 		{
 			if (Device)
@@ -703,7 +756,7 @@ int main(int argc, char* argv[])
 		video::SColorf(1.0f,1.0f,1.0f),2000);
 	smgr->setAmbientLight(video::SColorf(0.3f,0.3f,0.3f));
 	// add our media directory as "search path"
-	Device->getFileSystem()->addFolderFileArchive("../../media/");
+	Device->getFileSystem()->addFileArchive("../../media/");
 
 	/*
 	The next step is to read the configuration file. It is stored in the xml
@@ -886,7 +939,7 @@ int main(int argc, char* argv[])
 	/*
 	That's nearly the whole application. We simply show the about message
 	box at start up, and load the first model. To make everything look
-	better, a skybox is created and a user controled camera, to make the
+	better, a skybox is created and a user controlled camera, to make the
 	application a little bit more interactive. Finally, everything is drawn
 	in a standard drawing loop.
 	*/
@@ -929,10 +982,19 @@ int main(int argc, char* argv[])
 	img->setAlignment(EGUIA_UPPERLEFT, EGUIA_UPPERLEFT,
 			EGUIA_LOWERRIGHT, EGUIA_LOWERRIGHT);
 
+	// remember state so we notice when the window does lose the focus
+	bool hasFocus = Device->isWindowFocused();
+
 	// draw everything
 
 	while(Device->run() && driver)
 	{
+		// Catch focus changes (workaround until Irrlicht has events for this)
+		bool focused = Device->isWindowFocused();
+		if ( hasFocus && !focused )
+			onKillFocus();
+		hasFocus = focused;
+
 		if (Device->isWindowActive())
 		{
 			driver->beginScene(true, true, video::SColor(150,50,50,50));

@@ -78,16 +78,16 @@ public:
 	{
 		if (event.EventType == EET_GUI_EVENT)
 		{
-			s32 id = event.Info.GUIEvent.Caller->getID();
+			s32 id = event.GUIEvent.Caller->getID();
 			IGUIEnvironment* env = Device->getGUIEnvironment();
 
-			switch(event.Info.GUIEvent.EventType)
+			switch(event.GUIEvent.EventType)
 			{
 
 			case EGET_SCROLL_BAR_CHANGED:
 				if (id == 104)
 				{
-					s32 pos = ((IGUIScrollBar*)event.Info.GUIEvent.Caller)->getPos();
+					s32 pos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
 					
 					for (s32 i=0; i<EGDC_COUNT ; ++i)
 					{
@@ -180,12 +180,12 @@ int main()
 	Device->setEventReceiver(&receiver);
 
 	// Load fonts
- 	fonts[0] = env->getFont(FONTPATH1, SIZE_FONT_NORMAL);
- 	fonts[1] = env->getFont(FONTPATH1, SIZE_FONT_BIG);
- 	fonts[2] = env->getFont(FONTPATH2, SIZE_FONT_NORMAL);
- 	fonts[3] = env->getFont(FONTPATH2, SIZE_FONT_BIG);
- 	fonts[4] = env->getFont(FONTPATH3, SIZE_FONT_NORMAL);
- 	fonts[5] = env->getFont(FONTPATH3, SIZE_FONT_BIG);
+ 	fonts[0] = env->getFont(FONTPATH1);
+ 	fonts[1] = env->getFont(FONTPATH1);
+ 	fonts[2] = env->getFont(FONTPATH2);
+ 	fonts[3] = env->getFont(FONTPATH2);
+ 	fonts[4] = env->getFont(FONTPATH3);
+ 	fonts[5] = env->getFont(FONTPATH3);
 
 	font = fonts[0];
 	font2 = fonts[1];
