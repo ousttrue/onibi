@@ -3,7 +3,6 @@
 ==============================
 | Irrlichtが独語で鬼火らしいので直訳。
 | IrrlichtとBulletを中心に3D用途で使うライブラリをMinGWでビルドしやすいようにpremake4を使って編成しました。
-| IrrlichtとBulletのswigを使ったpythonラッパも作成中。
 
 * Irrlicht-1.72(& IrrlichtML)
 * Irrlichtのswigによるpythonラッパ
@@ -18,14 +17,13 @@
 | ライセンスついては、各ライブラリに準拠してください。
 
 .. contents:: Table of Contents
-
+_
 URL
 ===
 * https://github.com/ousttrue/onibi
 
 ToDo
 ====
-* irrlich-1.8に換装する
 * msgpack-rpcを持ってくる  
 * msgpack-rpc経由でシーンを構築するUIをなんか作る(pyQTとか？)
 
@@ -35,6 +33,8 @@ ToDo
 ----------
 * irrmmdと合体。とりあえずvc2010で全部ビルドするところまで
 * bullet-2.81に更新。_maxdot_largeがリンクできぬ。謎
+* irrlicht-1.8に更新
+* swig関連除去
 
 2013-06-11
 ----------
