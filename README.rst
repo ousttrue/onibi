@@ -22,12 +22,15 @@ URL
 
 ToDo
 ====
-* msgpack-rpcを持ってくる  
 * msgpack-rpc経由でシーンを構築するUIをなんか作る(pyQTとか？)
 * IrrlichtMLのfreetypeフォントを再マージする？
 
 更新
 ====
+2013-06-16
+----------
+* msgpackとmsgpack-rpc-asioを追加
+
 2013-06-12
 ----------
 * irrmmdと合体。とりあえずvc2010で全部ビルドするところまで
@@ -119,6 +122,11 @@ freeglut
 
 Freeglut 2.6.0。X-Consortiumライセンス。bulletdemosが使う。
 
+msgpack
+-------
+
+msgpack 0.5.7
+
 premake4.exe
 ------------
 
@@ -145,14 +153,6 @@ premake4.exe
     > cd onibi
     > ./premake4 gmake
     > make
-    ==== Building freetype (release) ====
-    ==== Building glew32 (release) ====
-    ==== Building glut32 (release) ====
-    ==== Building z (release) ====
-    ==== Building lzma (release) ====
-    ==== Building jpeg (release) ====
-    ==== Building png (release) ====
-    ==== Building bzip2 (release) ====
 
 Irrlichtのdllをビルド
 ---------------------
@@ -161,12 +161,6 @@ Irrlichtのdllをビルド
     > cd onibi/irrlicht
     > ../premake4 gmake
     > make
-    ==== Building IrrlichtIO (release) ====
-    ==== Building aesGladman (release) ====
-    ==== Building IrrlichtVideo (release) ====
-    ==== Building IrrlichtScene (release) ====
-    ==== Building IrrlichtGui (release) ====
-    ==== Building Irrlicht (release) ====
 
 bulletのビルド
 --------------
@@ -175,10 +169,6 @@ bulletのビルド
     > cd onibi/bullet
     > ../premake4 gmake
     > make
-    ==== Building LinearMath (release32) ====
-    ==== Building BulletCollision (release32) ====
-    ==== Building BulletDynamics (release32) ====
-    ==== Building BulletSoftBody (release32) ====
 
 irrmmdのビルド
 --------------
@@ -188,7 +178,6 @@ irrmmdのビルド
     > ../premake4 gmake
     > make
 
-
 Irrlicht examplesのビルド
 -------------------------
 ::
@@ -196,28 +185,6 @@ Irrlicht examplesのビルド
     > cd onibi/irrlicht/examples
     > ../../premake4 gmake
     > make
-    ==== Building 01.HelloWorld (release) ====
-    ==== Building 02.Quake3Map (release) ====
-    ==== Building 03.CustomSceneNode (release) ====
-    ==== Building 04.Movement (release) ====
-    ==== Building 05.UserInterface (release) ====
-    ==== Building 06.2DGraphics (release) ====
-    ==== Building 07.Collision (release) ====
-    ==== Building 08.SpecialFX (release) ====
-    ==== Building 09.MeshViewer (release) ====
-    ==== Building 10.Shaders (release) ====
-    ==== Building 11.PerPixelLighting (release) ====
-    ==== Building 12.TerrainRendering (release) ====
-    ==== Building 13.RenderToTexture (release) ====
-    ==== Building 14.Win32Window (release) ====
-    ==== Building 15.LoadIrrFile (release) ====
-    ==== Building 16.Quake3MapShader (release) ====
-    ==== Building 18.SplitScreen (release) ====
-    ==== Building 19.MouseAndJoystick (release) ====
-    ==== Building 20.ManagedLights (release) ====
-    ==== Building 22.MaterialViewer (release) ====
-    ==== Building 23.SMeshHandling (release) ====
-    ==== Building IrrlichtML (release) ====
 
 | メディア置き場が"../../media"になっているので、実行時に
 | ../../mediaにIrrlicht/mediaをコピーする必要があります。
@@ -229,35 +196,4 @@ bulletdemosのビルド
     > cd onibi/bulletdemos
     > ../premake4 gmake
     > make
-    ==== Building OpenGLSupport (release32) ====
-    ==== Building App_BasicDemo (release32) ====
-    ==== Building App_Box2dDemo (release32) ====
-    ==== Building App_BspDemo (release32) ====
-    ==== Building App_CcdPhysicsDemo (release32) ====
-    ==== Building App_CollisionDemo (release32) ====
-    ==== Building App_CollisionInterfaceDemo (release32) ====
-    ==== Building App_ConcaveConvexcastDemo (release32) ====
-    ==== Building App_ConcaveDemo (release32) ====
-    ==== Building App_ConcaveRaycastDemo (release32) ====
-    ==== Building App_ConstraintDemo (release32) ====
-    ==== Building App_ContinuousConvexCollision (release32) ====
-    ==== Building App_ConvexHullDistance (release32) ====
-    ==== Building App_DynamicControlDemo (release32) ====
-    ==== Building App_EPAPenDepthDemo (release32) ====
-    ==== Building App_ForkLiftDemo (release32) ====
-    ==== Building App_FractureDemo (release32) ====
-    ==== Building App_GenericJointDemo (release32) ====
-    ==== Building App_GimpactTestDemo (release32) ====
-    ==== Building App_GjkConvexCastDemo (release32) ====
-    ==== Building App_HelloWorld (release32) ====
-    ==== Building App_InternalEdgeDemo (release32) ====
-    ==== Building App_MovingConcaveDemo (release32) ====
-    ==== Building App_MultiMaterialDemo (release32) ====
-    ==== Building App_RagdollDemo (release32) ====
-    ==== Building App_Raytracer (release32) ====
-    ==== Building App_SimplexDemo (release32) ====
-    ==== Building App_SliderConstraintDemo (release32) ====
-    ==== Building App_TerrainDemo (release32) ====
-    ==== Building App_UserCollisionAlgorithm (release32) ====
-    ==== Building App_VehicleDemo (release32) ====
 

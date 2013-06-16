@@ -33,6 +33,9 @@ include "jpeglib"
 include "libpng"
 include "bzip2"
 
+-- msgpack
+include "msgpack"
+
 -- mqo, pmd loading
 include "meshio"
 
