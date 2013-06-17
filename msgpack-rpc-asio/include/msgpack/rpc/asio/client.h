@@ -170,7 +170,7 @@ public:
                 ss << "?";
                 break;
             case func_call::STATUS_RECEIVED:
-                ss << m_result;
+                //ss << m_result;
                 break;
             case func_call::STATUS_ERROR:
                 ss << "!";
@@ -188,6 +188,7 @@ inline std::ostream &operator<<(std::ostream &os, const func_call &request)
     os << request.string();
     return os;
 }
+
 
 
 class client_error: public std::runtime_error
@@ -268,6 +269,15 @@ public:
             call->sync();
         }
 
+    // 3
+    template<typename A1, typename A2, typename A3>
+        void call_sync_void(const std::string &method, A1 a1, A2 a2, A3 a3)
+        {
+            auto request=m_request_factory.create(method, a1, a2, a3);
+            auto call=send_async(request);
+            call->sync();
+        }
+
     // sync with response
     // 0
     template<typename R>
@@ -323,7 +333,10 @@ private:
             ::msgpack::pack(*sbuf, msgreq);
 
             std::stringstream ss;
-            ss << msgreq.method << msgreq.param;
+            ss 
+				<< msgreq.method
+				// << msgreq.param
+				;
             auto req=std::make_shared<func_call>(ss.str());
             m_request_map.insert(std::make_pair(msgreq.msgid, req));
 

@@ -96,6 +96,20 @@ namespace std {
             return handler(std::get<0>(args), std::get<1>(args), std::get<2>(args), std::get<3>(args));
         }
 
+    // 7
+    template<typename F, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7>
+        auto call_with_tuple(const F &handler, const std::tuple<A1, A2, A3, A4, A5, A6, A7> &args)->decltype(handler(A1(), A2(), A3(), A4(), A5(), A6(), A7()))
+        {
+            return handler(std::get<0>(args), std::get<1>(args), std::get<2>(args), std::get<3>(args), std::get<4>(args), std::get<5>(args), std::get<6>(args));
+        }
+
+    // 8
+    template<typename F, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8>
+        auto call_with_tuple(const F &handler, const std::tuple<A1, A2, A3, A4, A5, A6, A7, A8> &args)->decltype(handler(A1(), A2(), A3(), A4(), A5(), A6(), A7(), A8()))
+        {
+            return handler(std::get<0>(args), std::get<1>(args), std::get<2>(args), std::get<3>(args), std::get<4>(args), std::get<5>(args), std::get<6>(args), stdd::get<7>(args));
+        }
+
     // call_with_tuple_void
     // 0
     template<typename F>

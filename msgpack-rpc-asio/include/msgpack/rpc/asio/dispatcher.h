@@ -223,6 +223,49 @@ public:
                         }));
         }
 
+    // 7
+    template<typename F, typename R, typename C, 
+        typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7>
+        void add_handler(const std::string &method, F handler, R(C::*p)(A1, A2, A3, A4, A5, A6, A7)const)
+        {
+            m_handlerMap.insert(std::make_pair(method, [handler](
+                            ::msgpack::rpc::msgid_t msgid, 
+                            ::msgpack::object msg_params)->std::shared_ptr<msgpack::sbuffer>
+                        {
+                        typedef boost::remove_const<boost::remove_reference<A1>::type>::type B1;
+                        typedef boost::remove_const<boost::remove_reference<A2>::type>::type B2;
+                        typedef boost::remove_const<boost::remove_reference<A3>::type>::type B3;
+                        typedef boost::remove_const<boost::remove_reference<A4>::type>::type B4;
+                        typedef boost::remove_const<boost::remove_reference<A5>::type>::type B5;
+                        typedef boost::remove_const<boost::remove_reference<A6>::type>::type B6;
+                        typedef boost::remove_const<boost::remove_reference<A7>::type>::type B7;
+                        return helper<F, R, C, std::tuple<B1, B2, B3, B4, B5, B6, B7>>(
+                            handler, msgid, msg_params);
+                        }));
+        }
+
+    // 8
+    template<typename F, typename R, typename C, 
+        typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8>
+        void add_handler(const std::string &method, F handler, R(C::*p)(A1, A2, A3, A4, A5, A6, A7, A8)const)
+        {
+            m_handlerMap.insert(std::make_pair(method, [handler](
+                            ::msgpack::rpc::msgid_t msgid, 
+                            ::msgpack::object msg_params)->std::shared_ptr<msgpack::sbuffer>
+                        {
+                        typedef boost::remove_const<boost::remove_reference<A1>::type>::type B1;
+                        typedef boost::remove_const<boost::remove_reference<A2>::type>::type B2;
+                        typedef boost::remove_const<boost::remove_reference<A3>::type>::type B3;
+                        typedef boost::remove_const<boost::remove_reference<A4>::type>::type B4;
+                        typedef boost::remove_const<boost::remove_reference<A5>::type>::type B5;
+                        typedef boost::remove_const<boost::remove_reference<A6>::type>::type B6;
+                        typedef boost::remove_const<boost::remove_reference<A7>::type>::type B7;
+                        typedef boost::remove_const<boost::remove_reference<A7>::type>::type B8;
+                        return helper<F, R, C, std::tuple<B1, B2, B3, B4, B5, B6, B7, B8>>(
+                            handler, msgid, msg_params);
+                        }));
+        }
+
     // void
     // 0
     template<typename F, typename C
@@ -394,6 +437,26 @@ public:
         {
             add_handler(method, std::function<R(A1, A2, A3, A4)>(
                         std::bind(handler, self, b1, b2, b3, b4)));
+        }
+
+    // 7
+    template<typename R, typename C, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7,
+        typename B1, typename B2, typename B3, typename B4, typename B5, typename B6, typename B7>
+        void add_bind(const std::string &method, R(C::*handler)(A1, A2, A3, A4, A5, A6, A7), 
+                C *self, B1 b1, B2 b2, B3 b3, B4 b4, B5 b5, B6 b6, B7 b7)
+        {
+            add_handler(method, std::function<R(A1, A2, A3, A4, A5, A6, A7)>(
+                        std::bind(handler, self, b1, b2, b3, b4, b5, b6, b7)));
+        }
+
+    // 8
+    template<typename R, typename C, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8,
+        typename B1, typename B2, typename B3, typename B4, typename B5, typename B6, typename B7, typename B8>
+        void add_bind(const std::string &method, R(C::*handler)(A1, A2, A3, A4, A5, A6, A7, A8), 
+                C *self, B1 b1, B2 b2, B3 b3, B4 b4, B5 b5, B6 b6, B7 b7, B8 b8)
+        {
+            add_handler(method, std::function<R(A1, A2, A3, A4, A5, A6, A7, A8)>(
+                        std::bind(handler, self, b1, b2, b3, b4, b5, b6, b7, b8)));
         }
 
     // for std::bind(void)
