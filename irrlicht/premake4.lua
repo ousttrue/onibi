@@ -92,7 +92,6 @@ end
 
 configuration {}
 
-include "examples"
 dofile "Irrlicht.lua"
 include "aesGladman"
 

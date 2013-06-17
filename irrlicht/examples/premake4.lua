@@ -1,8 +1,6 @@
---[[
 -- A solution contains projects, and defines the available configurations
 solution "examples"
 configurations { "Release", "Debug" }
---]]
 
 defines {
     "UNICODE",
