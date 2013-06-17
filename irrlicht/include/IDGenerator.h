@@ -1,7 +1,16 @@
 #pragma once
-#include "irrMap.h"
+#include "irrTypes.h"
 
 namespace irr {
+
+	class IReferenceCounted;
+
+	extern "C" IRRLICHT_API u32 get_uid();
+	extern "C" IRRLICHT_API void register_uid(u32 uid, IReferenceCounted *p);
+	extern "C" IRRLICHT_API void unregister_uid(u32 uid);
+	extern "C" IRRLICHT_API IReferenceCounted* get_from_uid(u32 uid);
+
+	/*
     template<typename T>
     class IDGenerator
     {
@@ -29,7 +38,7 @@ namespace irr {
         // static
         ////////////////////
     private:
-        static core::map<unsigned int, IDGenerator<T>*> s_uid_map;
+        static core::map<unsigned int, IDGenerator*> s_uid_map;
     public:
         static unsigned int generate_uid(){ 
 	        static unsigned int next_uid=1;
@@ -45,5 +54,5 @@ namespace irr {
 		}
     };
 	template <typename T> core::map<unsigned int, IDGenerator<T>*> IDGenerator<T>::s_uid_map;
-
+	*/
 }

@@ -10,6 +10,9 @@ files {
     "src/*.cpp", 
     "src/*.h",
 }
+defines {
+    "IRRLICHT_EXPORTS",
+}
 linkoptions {
 }
 links {

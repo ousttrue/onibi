@@ -6,6 +6,7 @@
 #define __I_IREFERENCE_COUNTED_H_INCLUDED__
 
 #include "irrTypes.h"
+#include "IDGenerator.h"
 
 namespace irr
 {
@@ -44,13 +45,17 @@ namespace irr
 
 		//! Constructor.
 		IReferenceCounted()
-			: DebugName(0), ReferenceCounter(1)
+			: DebugName(0), ReferenceCounter(1), UID(get_uid())
 		{
+			register_uid(UID, this);
 		}
+
+		u32 uid(){ return UID; }
 
 		//! Destructor.
 		virtual ~IReferenceCounted()
 		{
+			unregister_uid(UID);
 		}
 
 		//! Grabs the object. Increments the reference counter by one.
@@ -162,6 +167,8 @@ namespace irr
 
 		//! The reference counter. Mutable to do reference counting on const objects.
 		mutable s32 ReferenceCounter;
+
+		u32 UID;
 	};
 
 } // end namespace irr

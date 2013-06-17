@@ -37,7 +37,6 @@ do
     defines {
         "WIN32",
         "_WINDOWS",
-        "IRRLICHT_EXPORTS",
     }
     includedirs {
         "$(DXSDK_DIR)/include",
@@ -93,6 +92,7 @@ end
 
 configuration {}
 
+include "examples"
 dofile "Irrlicht.lua"
 include "aesGladman"
 

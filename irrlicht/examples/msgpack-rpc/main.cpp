@@ -1,7 +1,8 @@
-#include <irrlicht.h>
-#include <memory>
 #include <boost/thread.hpp>
 #include <msgpack/rpc/asio.h>
+#include <irrlicht.h>
+#include <memory>
+#include <iostream>
 
 
 namespace msgpack {
@@ -20,12 +21,13 @@ namespace msgpack {
 
     // unpack
 		template<typename HasUID>
-    inline HasUID* operator>> (
-            object o, HasUID *v)
+    inline HasUID *& operator>> (
+            object o, HasUID *&v)
     {
         unsigned int uid;
         o.convert(&uid);
-		v=dynamic_cast<HasUID*>(HasUID::get_from_uid(uid));
+		auto p=irr::get_from_uid(uid);
+		v=dynamic_cast<HasUID*>(p);
         return v;
     }
 
@@ -112,22 +114,56 @@ namespace msgpack {
 }
 
 
-class Irrlicht
+class RenderLoop
 {
     irr::IrrlichtDevice *m_device;
     volatile bool m_loop;
-
+    volatile bool m_ready;
     const static int PORT=8070;
 
+    struct Message
+    {
+        msgpack::object object;
+        std::shared_ptr<msgpack::rpc::asio::session> session;
+
+		Message(const msgpack::object &o, std::shared_ptr<msgpack::rpc::asio::session> s)
+			: object(o), session(s)
+		{}
+    };
+    class MessageQueue
+    {
+        irr::core::list<std::shared_ptr<Message>> m_queue;
+        boost::mutex m_mutex;
+
+    public:
+        void enqueue(std::shared_ptr<Message> msg)
+        {
+            boost::mutex::scoped_lock(m_mutex);
+            m_queue.push_back(msg);
+        }
+
+        std::shared_ptr<Message> dequeue()
+        {
+            boost::mutex::scoped_lock(m_mutex);
+            if(m_queue.empty()){
+                return 0;
+            }
+            auto front=m_queue.begin();
+            auto item=*front;
+            m_queue.erase(front);
+            return item;
+        }
+    };
+    MessageQueue m_queue;
     msgpack::rpc::asio::dispatcher m_dispatcher;
 
 public:
-    Irrlicht()
-        : m_loop(false), m_device(0)
+    RenderLoop()
+        : m_loop(false), m_device(0), m_ready(false)
         {
         }
 
-    ~Irrlicht()
+    ~RenderLoop()
     {
         if(m_device){
             m_device->drop();
@@ -135,8 +171,26 @@ public:
         }
     }
 
-    msgpack::rpc::asio::dispatcher& getDispatcher(){ return m_dispatcher; }
+    bool ready()const{ return m_ready; }
 
+    void enqueue(const msgpack::object &obj, std::shared_ptr<msgpack::rpc::asio::session> session)
+    {
+        m_queue.enqueue(std::make_shared<Message>(obj, session));
+    }
+
+    void stop(){ 
+		m_loop=false; 
+	}
+
+    void run(){
+        m_ready=initialize();
+        if(!m_ready){
+            return;
+        }
+        loop();
+    }
+
+private:
     bool initialize()
     {
         if(m_device){
@@ -200,10 +254,6 @@ public:
         return true;
     }
 
-    void stop(){ 
-		m_loop=false; 
-	}
-
     void loop()
     {
         if(!m_device){
@@ -216,6 +266,15 @@ public:
         auto guienv = m_device->getGUIEnvironment();
         while(m_loop)
         {
+            // consume event
+            while(true){
+                auto msg=m_queue.dequeue();
+                if(!msg){
+                    break;
+                }
+                m_dispatcher.dispatch(msg->object, msg->session);
+            }
+
 			if(!m_device->run()){
 				break;
 			}
@@ -237,20 +296,16 @@ int main()
     const static int PORT=8070;
 
     // renderer
-    Irrlicht app;
-    if(!app.initialize()){
-        return 1;
-    }
-    boost::thread irr_thread(std::bind(&Irrlicht::loop, &app));
+    RenderLoop app;
+    boost::thread irr_thread(std::bind(&RenderLoop::run, &app));
 
     // server
     boost::asio::io_service server_io;
-    auto &dispatcher=app.getDispatcher();
-    msgpack::rpc::asio::server server(server_io, [&dispatcher](
+    msgpack::rpc::asio::server server(server_io, [&app](
                 const msgpack::object &msg, 
                 std::shared_ptr<msgpack::rpc::asio::session> session)
             {
-            dispatcher.dispatch(msg, session);
+            app.enqueue(msg, session);
             });
     server.listen(boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), PORT));
     boost::thread server_thread([&server_io](){ server_io.run(); });
@@ -284,17 +339,16 @@ int main()
 		}
 
         // run
-        boost::this_thread::sleep(boost::posix_time::millisec(10000));
+        //boost::this_thread::sleep(boost::posix_time::millisec(3000));
 	}
+
+	irr_thread.join();
 
     client_io.stop();
     clinet_thread.join();
 
     server_io.stop();
     server_thread.join();
-
-    app.stop();
-    irr_thread.join();
 
 	return 0;
 }
