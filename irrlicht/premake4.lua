@@ -65,7 +65,10 @@ do
         "_CRT_SECURE_NO_DEPRECATE",
         "NOMINMAX",
     }
-    buildoptions { "/wd4996" }
+    buildoptions { 
+        "/wd4996",
+        "/wd4005",
+    }
 end
 
 configuration "Debug"

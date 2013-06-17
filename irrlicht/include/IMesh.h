@@ -8,11 +8,13 @@
 #include "IReferenceCounted.h"
 #include "SMaterial.h"
 #include "EHardwareBufferFlags.h"
+#include "IDGenerator.h"
 
 namespace irr
 {
 namespace scene
 {
+
 	class IMeshBuffer;
 
 	//! Class which holds the geometry of an object.
@@ -20,10 +22,9 @@ namespace scene
 	(IMeshBuffer). SMesh is a simple implementation of an IMesh.
 	A mesh is usually added to an IMeshSceneNode in order to be rendered.
 	*/
-	class IMesh : public virtual IReferenceCounted
+	class IMesh : public virtual IReferenceCounted, public IDGenerator<IMesh>
 	{
 	public:
-
 		//! Get the amount of mesh buffers.
 		/** \return Amount of mesh buffers (IMeshBuffer) in this mesh. */
 		virtual u32 getMeshBufferCount() const = 0;
@@ -67,6 +68,7 @@ namespace scene
 		on the GPU in the next render cycle. */
 		virtual void setDirty(E_BUFFER_TYPE buffer=EBT_VERTEX_AND_INDEX) = 0;
 	};
+	
 
 } // end namespace scene
 } // end namespace irr

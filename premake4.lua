@@ -9,12 +9,40 @@ end
 
 configuration "gmake"
 do
-  buildoptions { "-Wall", "-U__CYGWIN__", }
+    buildoptions { 
+        "-Wall", 
+        "-U__CYGWIN__", 
+    }
 end
 
 configuration "vs*"
 do
     --linkoptions { "/NODEFAULTLIB:LIBCMT" }
+    buildoptions { 
+        "/wd4996",
+    }
+end
+
+configuration "windows"
+do
+    defines {
+        "WIN32",
+        "_WINDOWS",
+    }
+end
+
+configuration "Debug"
+do
+    defines { "DEBUG" }
+    flags { "Symbols" }
+    targetdir "debug"
+end
+
+configuration "Release"
+do
+    defines { "NDEBUG" }
+    flags { "Optimize" }
+    targetdir "release"
 end
 
 configuration {}

@@ -80,11 +80,12 @@ include "20.ManagedLights"
 include "22.MaterialViewer"
 include "23.SMeshHandling"
 
--- DeformableMesh example
-include "irrmmd"
-
 -- IrrlichtML example
 include "IrrlichtML"
+
+-- additional
+include "irrmmd"
+include "msgpack-rpc"
 
 --[[
 -- onibi examples

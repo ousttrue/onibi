@@ -17,6 +17,8 @@
 #include "matrix4.h"
 #include "irrList.h"
 #include "IAttributes.h"
+#include "IDGenerator.h"
+
 
 namespace irr
 {
@@ -37,7 +39,7 @@ namespace scene
 	example easily possible to attach a light to a moving car, or to place
 	a walking character on a moving platform on a moving ship.
 	*/
-	class ISceneNode : virtual public io::IAttributeExchangingObject
+	class ISceneNode : virtual public io::IAttributeExchangingObject, public IDGenerator<ISceneNode>
 	{
 	public:
 
