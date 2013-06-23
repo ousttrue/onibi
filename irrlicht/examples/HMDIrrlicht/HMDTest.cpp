@@ -80,14 +80,19 @@ class MyEventReceiver : public irr::IEventReceiver
 public:
    bool OnEvent(const irr::SEvent& event)
    {   
-      if (event.EventType == irr::EET_KEY_INPUT_EVENT && event.KeyInput.PressedDown) {
-		  if (event.KeyInput.Key == irr::KEY_ESCAPE || event.KeyInput.Key==irr::KEY_KEY_Q)
-        {
-          device->closeDevice();
-          return true;
-        }
-      }
-      return false;
+       switch(event.EventType)
+       {
+           case irr::EET_KEY_INPUT_EVENT:
+               if(event.KeyInput.PressedDown) {
+                   if (event.KeyInput.Key == irr::KEY_ESCAPE || event.KeyInput.Key==irr::KEY_KEY_Q)
+                   {
+                       device->closeDevice();
+                       return true;
+                   }
+               }
+               break;
+       }
+       return false;
    }
    irr::IrrlichtDevice* device;
    irr::gui::ICursorControl* cursor;
@@ -138,16 +143,53 @@ int main(int argc, char* argv[]){
 
   HMDStereoRender renderer(device, HMD, 10);
   
-  // Create world
-  //auto fps=smgr->addCameraSceneNodeFPS();
-  auto camera=smgr->addCameraSceneNode(0, irr::core::vector3df(0, 1, 0), irr::core::vector3df(0, 1, 1));
-  //smgr->setActiveCamera(camera);
-
   // load the quake map
-  device->getFileSystem()->addZipFileArchive(MEDIA_PATH "map-20kdm2.pk3");
-  irr::scene::IAnimatedMesh* mesh = smgr->getMesh("20kdm2.bsp");
-  auto levelNode = smgr->addOctreeSceneNode(mesh->getMesh(0), 0, -1, 128);
-  levelNode->setPosition(irr::core::vector3df(-1350,-90,-1400));
+  device->getFileSystem()->addFileArchive("../../media/map-20kdm2.pk3");
+
+  irr::scene::IAnimatedMesh* q3levelmesh = smgr->getMesh("20kdm2.bsp");
+  irr::scene::IMeshSceneNode* q3node = 0;
+
+  if (q3levelmesh)
+      q3node = smgr->addOctreeSceneNode(q3levelmesh->getMesh(0), 0, -1);
+
+  irr::scene::ITriangleSelector* selector = 0;
+
+  if (q3node)
+  {
+      q3node->setPosition(irr::core::vector3df(-1350,-130,-1400));
+
+      selector = smgr->createOctreeTriangleSelector(
+              q3node->getMesh(), q3node, 128);
+      q3node->setTriangleSelector(selector);
+      // We're not done with this selector yet, so don't drop it.
+  }
+
+  // Create world
+  irr::core::array<irr::SKeyMap> keymaps;
+  keymaps.push_back(irr::SKeyMap(irr::EKA_MOVE_FORWARD, irr::KEY_KEY_W));
+  keymaps.push_back(irr::SKeyMap(irr::EKA_MOVE_BACKWARD, irr::KEY_KEY_S));
+  keymaps.push_back(irr::SKeyMap(irr::EKA_STRAFE_LEFT, irr::KEY_KEY_A));
+  keymaps.push_back(irr::SKeyMap(irr::EKA_STRAFE_RIGHT, irr::KEY_KEY_D));
+  keymaps.push_back(irr::SKeyMap(irr::EKA_JUMP_UP, irr::KEY_SPACE));
+  irr::scene::ICameraSceneNode* camera =
+      smgr->addCameraSceneNodeFPS(0, 
+              80.0f, .1f, -1, 
+              keymaps.pointer(), keymaps.size(), 
+              true, .5f, false, true,
+              true
+              );
+  camera->setPosition(irr::core::vector3df(50,50,-60));
+  camera->setTarget(irr::core::vector3df(-70,30,-60));
+  {
+      irr::scene::ISceneNodeAnimator* anim = smgr->createCollisionResponseAnimator(
+              selector, camera, 
+              irr::core::vector3df(30,50,30),
+              irr::core::vector3df(0,-10,0), 
+              irr::core::vector3df(0,30,0));
+      selector->drop(); // As soon as we're done with the selector, drop it.
+      camera->addAnimator(anim);
+      anim->drop();  // And likewise, drop the animator when we're done referring to it.
+  }
 
   // load a faerie 
   auto faerie = smgr->getMesh(MEDIA_PATH "faerie.md2");

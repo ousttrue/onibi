@@ -149,7 +149,12 @@ void HMDStereoRender::drawAll(ISceneManager* smgr, const irr::core::quaternion &
 {
 	ICameraSceneNode* camera = smgr->getActiveCamera();
 	auto now=_timer->getTime();
+    //auto xyz=camera->getRotation();
+    //camera->setRotation(irr::core::vector3df(0, xyz.Y, 0));
 	camera->OnAnimate(now);
+    camera->render();
+	auto v=q.getMatrix() * camera->getViewMatrix();
+
 	smgr->setActiveCamera(_pCamera);
 
 	// Render Left
@@ -159,7 +164,7 @@ void HMDStereoRender::drawAll(ISceneManager* smgr, const irr::core::quaternion &
 
 		irr::core::matrix4 m;
         m[12]=_eyeSeparation;
-		_pCamera->setViewMatrixAffector(m * q.getMatrix());
+		_pCamera->setViewMatrixAffector(v * m);
 
 		smgr->drawAll();
 
@@ -179,7 +184,7 @@ void HMDStereoRender::drawAll(ISceneManager* smgr, const irr::core::quaternion &
 
 		irr::core::matrix4 m;
         m[12]=-_eyeSeparation;
-		_pCamera->setViewMatrixAffector(m * q.getMatrix());
+		_pCamera->setViewMatrixAffector(v * m);
 
 		smgr->drawAll();
 
@@ -191,5 +196,7 @@ void HMDStereoRender::drawAll(ISceneManager* smgr, const irr::core::quaternion &
 		_driver->setMaterial(_renderMaterial); 
 		_driver->drawIndexedTriangleList(_planeVertices, 4, _planeIndices, 2);
 	}
+
+	smgr->setActiveCamera(camera);
 }
 

@@ -705,6 +705,7 @@ namespace scene
 			f32 rotateSpeed = 100.0f, f32 moveSpeed = 0.5f, s32 id=-1,
 			SKeyMap* keyMapArray=0, s32 keyMapSize=0, bool noVerticalMovement=false,
 			f32 jumpSpeed = 0.f, bool invertMouse=false,
+            bool ignoreMouseVertical=false,
 			bool makeActive=true) = 0;
 
 		//! Adds a dynamic light scene node to the scene graph.

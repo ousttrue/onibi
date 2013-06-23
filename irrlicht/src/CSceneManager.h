@@ -150,7 +150,8 @@ namespace scene
 			f32 rotateSpeed = 100.0f, f32 moveSpeed = .5f, s32 id=-1,
 			SKeyMap* keyMapArray=0, s32 keyMapSize=0,
 			bool noVerticalMovement=false, f32 jumpSpeed = 0.f,
-			bool invertMouseY=false, bool makeActive=true);
+			bool invertMouseY=false, bool ignoreMouseY=false,
+            bool makeActive=true);
 
 		//! Adds a dynamic light scene node. The light will cast dynamic light on all
 		//! other scene nodes in the scene, which have the material flag video::MTF_LIGHTING

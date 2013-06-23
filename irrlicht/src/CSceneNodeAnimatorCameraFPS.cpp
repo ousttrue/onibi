@@ -18,10 +18,11 @@ namespace scene
 //! constructor
 CSceneNodeAnimatorCameraFPS::CSceneNodeAnimatorCameraFPS(gui::ICursorControl* cursorControl,
 		f32 rotateSpeed, f32 moveSpeed, f32 jumpSpeed,
-		SKeyMap* keyMapArray, u32 keyMapSize, bool noVerticalMovement, bool invertY)
+		SKeyMap* keyMapArray, u32 keyMapSize, bool noVerticalMovement, bool invertY, bool ignoreY)
 : CursorControl(cursorControl), MaxVerticalAngle(88.0f),
 	MoveSpeed(moveSpeed), RotateSpeed(rotateSpeed), JumpSpeed(jumpSpeed),
 	MouseYDirection(invertY ? -1.0f : 1.0f),
+    MouseYIgnore(ignoreY),
 	LastAnimationTime(0), firstUpdate(true), firstInput(true), NoVerticalMovement(noVerticalMovement)
 {
 	#ifdef _DEBUG
@@ -149,7 +150,9 @@ void CSceneNodeAnimatorCameraFPS::animateNode(ISceneNode* node, u32 timeMs)
 		if (CursorPos != CenterCursor)
 		{
 			relativeRotation.Y -= (0.5f - CursorPos.X) * RotateSpeed;
-			relativeRotation.X -= (0.5f - CursorPos.Y) * RotateSpeed * MouseYDirection;
+            if(!MouseYIgnore){
+                relativeRotation.X -= (0.5f - CursorPos.Y) * RotateSpeed * MouseYDirection;
+            }
 
 			// X < MaxVerticalAngle or X > 360-MaxVerticalAngle
 
