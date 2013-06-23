@@ -128,8 +128,18 @@ int main()
 
 	// Set a jump speed of 3 units per second, which gives a fairly realistic jump
 	// when used with the gravity of (0, -10, 0) in the collision response animator.
-	scene::ICameraSceneNode* camera =
-		smgr->addCameraSceneNodeFPS(0, 100.0f, .3f, ID_IsNotPickable, 0, 0, true, 3.f);
+    //
+    irr::core::array<SKeyMap> keymaps;
+    keymaps.push_back(SKeyMap(EKA_MOVE_FORWARD, irr::KEY_KEY_W));
+    keymaps.push_back(SKeyMap(EKA_MOVE_BACKWARD, irr::KEY_KEY_S));
+    keymaps.push_back(SKeyMap(EKA_STRAFE_LEFT, irr::KEY_KEY_A));
+    keymaps.push_back(SKeyMap(EKA_STRAFE_RIGHT, irr::KEY_KEY_D));
+    keymaps.push_back(SKeyMap(EKA_JUMP_UP, irr::KEY_SPACE));
+    scene::ICameraSceneNode* camera =
+        smgr->addCameraSceneNodeFPS(0, 100.0f, .3f, ID_IsNotPickable, 
+                keymaps.pointer(), keymaps.size(), 
+                true, 3.f
+                );
 	camera->setPosition(core::vector3df(50,50,-60));
 	camera->setTarget(core::vector3df(-70,30,-60));
 

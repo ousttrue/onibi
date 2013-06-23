@@ -118,6 +118,7 @@ int main()
 
 
 	core::array<SJoystickInfo> joystickInfo;
+
 	if(device->activateJoysticks(joystickInfo))
 	{
 		std::cout << "Joystick support is enabled and " << joystickInfo.size() << " joystick(s) are present." << std::endl;
@@ -151,6 +152,9 @@ int main()
 	else
 	{
 		std::cout << "Joystick support is not enabled." << std::endl;
+	}
+	if(joystickInfo.empty()){
+		return 0;
 	}
 
 	core::stringw tmp = L"Irrlicht Joystick Example (";

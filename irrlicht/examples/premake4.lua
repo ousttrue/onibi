@@ -87,6 +87,9 @@ include "IrrlichtML"
 -- additional
 include "irrmmd"
 include "msgpack-rpc"
+include "msgpack-rpc-server"
+
+include "HMDIrrlicht"
 
 --[[
 -- onibi examples
