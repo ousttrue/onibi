@@ -9,9 +9,15 @@ files {
     "*.cpp", "*.h",
 }
 includedirs {
-    "../../../irrlicht/include"
+    "../../../../../_oculus/TinyRoom/LibOVR/include",
+}
+libdirs {
+    "../../../../../_oculus/TinyRoom/debug",
 }
 links {
-    "Irrlicht"
+    "Irrlicht",
+    "LibOVR",
+    "setupapi",
+    "winmm",
 }
 

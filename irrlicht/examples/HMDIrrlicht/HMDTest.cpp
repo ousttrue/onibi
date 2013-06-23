@@ -18,27 +18,53 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <irrlicht.h>
 #include "HMDStereoRender.h"
 #define MEDIA_PATH "../../media/"
-//#include <ovr.h>
+#include <iostream>
+#include <ovr.h>
 
-/*
 class Oculus
 {
+    OVR::Ptr<OVR::DeviceManager> pManager;
+    OVR::Ptr<OVR::HMDDevice> pHMD;
+    OVR::Ptr<OVR::SensorDevice> pSensor;
+    OVR::SensorFusion SFusion;
+
 public:
     Oculus()
     {
+        OVR::System::Init(OVR::Log::ConfigureDefaultLog(OVR::LogMask_All));
     }
 
     ~Oculus()
     {
+        OVR::System::Destroy();
     }
 
     bool initilaize()
     {
+        pManager = *OVR::DeviceManager::Create();
+        if(!pManager){
+            return false;
+        }
+        pHMD = *pManager->EnumerateDevices<OVR::HMDDevice>().CreateDevice();
+        if(!pHMD){
+            return false;
+        }
+        pSensor = *pHMD->GetSensor();
+        if(!pSensor){
+            return false;
+        }
+
+        SFusion.AttachToSensor(pSensor);
+        return true;
     }
 
-    irr
+	irr::core::quaternion getRotation()
+	{
+        OVR::Quatf hmdOrient = SFusion.GetOrientation();
+		return irr::core::quaternion(hmdOrient.x, hmdOrient.y, hmdOrient.z, hmdOrient.w);
+	}
 };
-*/
+
 
 // Configuration
 
@@ -66,6 +92,20 @@ public:
    irr::IrrlichtDevice* device;
    irr::gui::ICursorControl* cursor;
 };
+
+
+static inline irr::core::quaternion flip_quaternion(const irr::core::quaternion &q)
+{
+	irr::f32 angle;
+	irr::core::vector3df axis;
+	q.toAngleAxis(angle, axis);
+	return irr::core::quaternion().fromAngleAxis(angle, 
+		irr::core::vector3df(
+		axis.X,
+		axis.Y,
+		-axis.Z
+		));
+}
 
 
 int main(int argc, char* argv[]){
@@ -99,7 +139,9 @@ int main(int argc, char* argv[]){
   HMDStereoRender renderer(device, HMD, 10);
   
   // Create world
-  smgr->addCameraSceneNodeFPS();
+  //auto fps=smgr->addCameraSceneNodeFPS();
+  auto camera=smgr->addCameraSceneNode(0, irr::core::vector3df(0, 1, 0), irr::core::vector3df(0, 1, 1));
+  //smgr->setActiveCamera(camera);
 
   // load the quake map
   device->getFileSystem()->addZipFileArchive(MEDIA_PATH "map-20kdm2.pk3");
@@ -123,16 +165,18 @@ int main(int argc, char* argv[]){
 
   device->getCursorControl()->setVisible(false);
 
-  //Oculus oculus;
-  //oculus.initilaize();
+  Oculus oculus;
+  oculus.initilaize();
 
   // Render loop
+  irr::core::vector3df rot;
   while(device->run()){
     // get Oculus rift rotation
-    //oculus.getRotation();
+	irr::core::quaternion q=oculus.getRotation();
+
     driver->beginScene(true,true,irr::video::SColor(0,100,100,100));
 
-    renderer.drawAll(smgr);
+    renderer.drawAll(smgr, flip_quaternion(q));
    
     // end scene
     driver->endScene();
