@@ -207,6 +207,7 @@ int main(int argc, char* argv[]){
 
   device->getCursorControl()->setVisible(false);
 
+  {
   Oculus oculus;
   oculus.initilaize();
 
@@ -224,6 +225,8 @@ int main(int argc, char* argv[]){
     driver->endScene();
   }
   device->drop();
+  }
+
   return 0;
 }
 
