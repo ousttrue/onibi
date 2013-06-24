@@ -52,6 +52,7 @@ static const char *fragShader =
 "    gl_FragColor = texture2D(texid, tc);"
 "}";
 
+
 HMDStereoRender::HMDStereoRender(irr::IrrlichtDevice *device, HMDDescriptor HMD, f32 worldScale)
   : _worldScale(worldScale),
     _renderTexture(NULL)
