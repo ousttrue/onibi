@@ -5,11 +5,58 @@
 #include "ICursorControl.h"
 #include "ICameraSceneNode.h"
 #include "ISceneNodeAnimatorCollisionResponse.h"
+#include <OVR.h>
+
 
 namespace irr
 {
 namespace scene
 {
+
+class Oculus
+{
+    OVR::Ptr<OVR::DeviceManager> pManager;
+    OVR::Ptr<OVR::HMDDevice> pHMD;
+    OVR::Ptr<OVR::SensorDevice> pSensor;
+    OVR::SensorFusion SFusion;
+
+public:
+    Oculus()
+    {
+        OVR::System::Init(OVR::Log::ConfigureDefaultLog(OVR::LogMask_All));
+    }
+
+    ~Oculus()
+    {
+        OVR::System::Destroy();
+    }
+
+    bool initilaize()
+    {
+        pManager = *OVR::DeviceManager::Create();
+        if(!pManager){
+            return false;
+        }
+        pHMD = *pManager->EnumerateDevices<OVR::HMDDevice>().CreateDevice();
+        if(!pHMD){
+            return false;
+        }
+        pSensor = *pHMD->GetSensor();
+        if(!pSensor){
+            return false;
+        }
+
+        SFusion.AttachToSensor(pSensor);
+        return true;
+    }
+
+	irr::core::quaternion getRotation()
+	{
+        OVR::Quatf hmdOrient = SFusion.GetOrientation();
+		return irr::core::quaternion(hmdOrient.x, hmdOrient.y, hmdOrient.z, hmdOrient.w);
+	}
+};
+
 
 //! constructor
 CSceneNodeAnimatorCameraOculusOnFPS::CSceneNodeAnimatorCameraOculusOnFPS(gui::ICursorControl* cursorControl,
@@ -19,7 +66,8 @@ CSceneNodeAnimatorCameraOculusOnFPS::CSceneNodeAnimatorCameraOculusOnFPS(gui::IC
 	MoveSpeed(moveSpeed), RotateSpeed(rotateSpeed), JumpSpeed(jumpSpeed),
 	MouseYDirection(invertY ? -1.0f : 1.0f),
     MouseYIgnore(ignoreY),
-	LastAnimationTime(0), firstUpdate(true), firstInput(true), NoVerticalMovement(noVerticalMovement)
+	LastAnimationTime(0), firstUpdate(true), firstInput(true), NoVerticalMovement(noVerticalMovement),
+    m_oculus(new Oculus)
 {
 	#ifdef _DEBUG
 	setDebugName("CCameraSceneNodeAnimatorFPS");
@@ -45,6 +93,8 @@ CSceneNodeAnimatorCameraOculusOnFPS::CSceneNodeAnimatorCameraOculusOnFPS(gui::IC
 		// create custom key map
 		setKeyMap(keyMapArray, keyMapSize);
 	}
+
+    m_oculus->initilaize();
 }
 
 
@@ -53,6 +103,11 @@ CSceneNodeAnimatorCameraOculusOnFPS::~CSceneNodeAnimatorCameraOculusOnFPS()
 {
 	if (CursorControl)
 		CursorControl->drop();
+
+    if(m_oculus){
+        delete m_oculus;
+        m_oculus=0;
+    }
 }
 
 
@@ -92,6 +147,20 @@ bool CSceneNodeAnimatorCameraOculusOnFPS::OnEvent(const SEvent& evt)
 }
 
 
+static inline irr::core::quaternion flip_quaternion(const irr::core::quaternion &q)
+{
+	irr::f32 angle;
+	irr::core::vector3df axis;
+	q.toAngleAxis(angle, axis);
+	return irr::core::quaternion().fromAngleAxis(angle, 
+		irr::core::vector3df(
+		axis.X,
+		axis.Y,
+		-axis.Z
+		));
+}
+
+
 void CSceneNodeAnimatorCameraOculusOnFPS::animateNode(ISceneNode* node, u32 timeMs)
 {
 	if (!node || node->getType() != ESNT_CAMERA)
@@ -109,6 +178,7 @@ void CSceneNodeAnimatorCameraOculusOnFPS::animateNode(ISceneNode* node, u32 time
 		}
 
 		LastAnimationTime = timeMs;
+        LastTarget=camera->getTarget();
 
 		firstUpdate = false;
 	}
@@ -138,7 +208,7 @@ void CSceneNodeAnimatorCameraOculusOnFPS::animateNode(ISceneNode* node, u32 time
 	core::vector3df pos = camera->getPosition();
 
 	// Update rotation
-	core::vector3df target = (camera->getTarget() - camera->getAbsolutePosition());
+	core::vector3df target = (LastTarget - camera->getAbsolutePosition());
 	core::vector3df relativeRotation = target.getHorizontalAngle();
 
 	if (CursorControl)
@@ -257,9 +327,17 @@ void CSceneNodeAnimatorCameraOculusOnFPS::animateNode(ISceneNode* node, u32 time
 	// write translation
 	camera->setPosition(pos);
 
+    // rotate target by Oculus quaternion
+    LastTarget=target;
+	irr::core::quaternion q=flip_quaternion(m_oculus->getRotation());
+    q.getMatrix().rotateVect(target);
+
 	// write right target
 	target += pos;
 	camera->setTarget(target);
+
+    // get Oculus rift rotation
+	auto v=q.getMatrix() * camera->getViewMatrix();
 }
 
 

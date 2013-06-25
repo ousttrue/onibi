@@ -29,7 +29,7 @@ using namespace std;
 static const char* vertexShader =
 "void main() {"
 "  gl_Position = vec4(gl_Vertex.xy, 0.0, 1.0);"
-"  gl_TexCoord[0].st = gl_MultiTexCoord0;"
+"  gl_TexCoord[0].st = gl_MultiTexCoord0.xy;"
 "}";
 
 static const char *fragShader =
@@ -146,29 +146,35 @@ void HMDStereoRender::setHMD(HMDDescriptor HMD) {
 }
 
 
-void HMDStereoRender::drawAll(ISceneManager* smgr, const irr::core::quaternion &q) 
+void HMDStereoRender::drawAll(ISceneManager* smgr) 
 {
 	ICameraSceneNode* camera = smgr->getActiveCamera();
-	auto now=_timer->getTime();
-    //auto xyz=camera->getRotation();
-    //camera->setRotation(irr::core::vector3df(0, xyz.Y, 0));
-	camera->OnAnimate(now);
+    auto now=_timer->getTime();
+    camera->OnAnimate(now);
     camera->render();
-	auto v=q.getMatrix() * camera->getViewMatrix();
+	auto v=camera->getViewMatrix();
 
+    // set camera
 	smgr->setActiveCamera(_pCamera);
 
-	// Render Left
+	// render left scene
 	{
+        // rendertarget
 		_driver->setRenderTarget(_renderTexture, true, true, video::SColor(0,0,0,0));
+
+        // projection
 		_pCamera->setProjectionMatrix(_projectionLeft);
 
+        // view
 		irr::core::matrix4 m;
         m[12]=_eyeSeparation;
 		_pCamera->setViewMatrixAffector(v * m);
 
+        // render
 		smgr->drawAll();
-
+    }
+    // render left distortion
+    {
 		_driver->setRenderTarget(0, false, false, video::SColor(0,100,100,100));
 		_driver->setViewPort(_viewportLeft);
 
@@ -178,17 +184,24 @@ void HMDStereoRender::drawAll(ISceneManager* smgr, const irr::core::quaternion &
 		_driver->drawIndexedTriangleList(_planeVertices, 4, _planeIndices, 2);
 	}
  
-	// Render Right
+	// render right scene
 	{
+        // rendertarget
 		_driver->setRenderTarget(_renderTexture, true, true, video::SColor(0,0,0,0));
+
+        // projection
 		_pCamera->setProjectionMatrix(_projectionRight);
 
+        // view
 		irr::core::matrix4 m;
         m[12]=-_eyeSeparation;
 		_pCamera->setViewMatrixAffector(v * m);
 
+        // render
 		smgr->drawAll();
-
+    }
+    // render right distortion
+    {
 		_driver->setRenderTarget(0, false, false, video::SColor(0,100,100,100));  
 		_driver->setViewPort(_viewportRight);
 
@@ -198,6 +211,7 @@ void HMDStereoRender::drawAll(ISceneManager* smgr, const irr::core::quaternion &
 		_driver->drawIndexedTriangleList(_planeVertices, 4, _planeIndices, 2);
 	}
 
+    // restore camera
 	smgr->setActiveCamera(camera);
 }
 

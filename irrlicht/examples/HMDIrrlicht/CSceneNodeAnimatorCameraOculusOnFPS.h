@@ -11,6 +11,7 @@ namespace gui
 
 namespace scene {
 
+class Oculus;
 class CSceneNodeAnimatorCameraOculusOnFPS: public ISceneNodeAnimatorCameraFPS
 {
 public:
@@ -106,12 +107,15 @@ private:
 
     core::array<SKeyMap> KeyMap;
     core::position2d<f32> CenterCursor, CursorPos;
+    core::vector3df LastTarget;
 
     bool CursorKeys[EKA_COUNT];
 
     bool firstUpdate;
     bool firstInput;
     bool NoVerticalMovement;
+
+    Oculus *m_oculus;
 };
 
 }}

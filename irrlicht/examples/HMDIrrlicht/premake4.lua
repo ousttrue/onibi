@@ -16,7 +16,7 @@ libdirs {
 }
 links {
     "Irrlicht",
-    "LibOVR",
+    "OVR",
     "setupapi",
     "winmm",
 }

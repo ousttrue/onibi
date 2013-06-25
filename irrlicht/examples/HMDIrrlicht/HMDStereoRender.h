@@ -45,7 +45,7 @@ public:
   irr::f32 getWorldScale(); 
   void setWorldScale(irr::f32 worldScale);
 
-  void drawAll(irr::scene::ISceneManager* smgr, const irr::core::quaternion &q);
+  void drawAll(irr::scene::ISceneManager* smgr);
 
 private:  
   irr::video::IVideoDriver* _driver;
