@@ -63,6 +63,9 @@ namespace scene
 		/** \return The affector matrix. */
 		virtual const core::matrix4& getViewMatrixAffector() const =0;
 
+		virtual void setViewMatrixLeftAffector(const core::matrix4& affector) =0;
+		virtual const core::matrix4& getViewMatrixLeftAffector() const =0;
+
 		//! It is possible to send mouse and key events to the camera.
 		/** Most cameras may ignore this input, but camera scene nodes
 		which are created for example with

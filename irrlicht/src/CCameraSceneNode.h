@@ -47,6 +47,13 @@ namespace scene
 		//! Gets the custom view matrix affector.
 		virtual const core::matrix4& getViewMatrixAffector() const;
 
+		//! Sets a custom view matrix affector.
+		/** \param affector: The affector matrix. */
+		virtual void setViewMatrixLeftAffector(const core::matrix4& affector);
+
+		//! Gets the custom view matrix affector.
+		virtual const core::matrix4& getViewMatrixLeftAffector() const;
+
 		//! It is possible to send mouse and key events to the camera. Most cameras
 		//! may ignore this input, but camera scene nodes which are created for 
 		//! example with scene::ISceneManager::addMayaCameraSceneNode or
@@ -159,6 +166,7 @@ namespace scene
 		f32 ZFar;	// Z-value of the far view-plane.
 
 		SViewFrustum ViewArea;
+		core::matrix4 LeftAffector;
 		core::matrix4 Affector;
 
 		bool InputReceiverEnabled;

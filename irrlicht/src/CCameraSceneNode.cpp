@@ -98,6 +98,19 @@ const core::matrix4& CCameraSceneNode::getViewMatrixAffector() const
 }
 
 
+void CCameraSceneNode::setViewMatrixLeftAffector(const core::matrix4& affector)
+{
+	LeftAffector = affector;
+}
+
+
+//! Gets the custom view matrix affector.
+const core::matrix4& CCameraSceneNode::getViewMatrixLeftAffector() const
+{
+	return LeftAffector;
+}
+
+
 //! It is possible to send mouse and key events to the camera. Most cameras
 //! may ignore this input, but camera scene nodes which are created for
 //! example with scene::ISceneManager::addMayaCameraSceneNode or
@@ -260,8 +273,10 @@ void CCameraSceneNode::render()
 		up.X += 0.5f;
 	}
 
-	ViewArea.getTransform(video::ETS_VIEW).buildCameraLookAtMatrixLH(pos, Target, up);
-	ViewArea.getTransform(video::ETS_VIEW) *= Affector;
+    core::matrix4 m;
+    m.buildCameraLookAtMatrixLH(pos, Target, up);
+
+	ViewArea.getTransform(video::ETS_VIEW)=LeftAffector * m * Affector;
 	recalculateViewArea();
 
 	video::IVideoDriver* driver = SceneManager->getVideoDriver();
@@ -370,6 +385,7 @@ ISceneNode* CCameraSceneNode::clone(ISceneNode* newParent, ISceneManager* newMan
 	nb->ZNear = ZNear;
 	nb->ZFar = ZFar;
 	nb->ViewArea = ViewArea;
+	nb->LeftAffector = LeftAffector;
 	nb->Affector = Affector;
 	nb->InputReceiverEnabled = InputReceiverEnabled;
 	nb->TargetAndRotationAreBound = TargetAndRotationAreBound;
