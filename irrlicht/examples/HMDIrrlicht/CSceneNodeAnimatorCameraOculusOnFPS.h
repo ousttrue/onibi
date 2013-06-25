@@ -20,7 +20,7 @@ public:
     CSceneNodeAnimatorCameraOculusOnFPS(gui::ICursorControl* cursorControl,
         f32 rotateSpeed = 100.0f, f32 moveSpeed = .5f, f32 jumpSpeed=0.f,
         SKeyMap* keyMapArray=0, u32 keyMapSize=0, bool noVerticalMovement=false,
-        bool invertY=false, bool ignoreY=false);
+        bool invertY=false);
 
     //! Destructor
     virtual ~CSceneNodeAnimatorCameraOculusOnFPS();
@@ -101,13 +101,11 @@ private:
     f32 JumpSpeed;
     // -1.0f for inverted mouse, defaults to 1.0f
     f32 MouseYDirection;
-    bool MouseYIgnore;
 
     s32 LastAnimationTime;
 
     core::array<SKeyMap> KeyMap;
     core::position2d<f32> CenterCursor, CursorPos;
-    core::vector3df LastTarget;
 
     bool CursorKeys[EKA_COUNT];
 

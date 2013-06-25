@@ -61,11 +61,10 @@ public:
 //! constructor
 CSceneNodeAnimatorCameraOculusOnFPS::CSceneNodeAnimatorCameraOculusOnFPS(gui::ICursorControl* cursorControl,
 		f32 rotateSpeed, f32 moveSpeed, f32 jumpSpeed,
-		SKeyMap* keyMapArray, u32 keyMapSize, bool noVerticalMovement, bool invertY, bool ignoreY)
+		SKeyMap* keyMapArray, u32 keyMapSize, bool noVerticalMovement, bool invertY)
 : CursorControl(cursorControl), MaxVerticalAngle(88.0f),
 	MoveSpeed(moveSpeed), RotateSpeed(rotateSpeed), JumpSpeed(jumpSpeed),
 	MouseYDirection(invertY ? -1.0f : 1.0f),
-    MouseYIgnore(ignoreY),
 	LastAnimationTime(0), firstUpdate(true), firstInput(true), NoVerticalMovement(noVerticalMovement),
     m_oculus(new Oculus)
 {
@@ -178,7 +177,6 @@ void CSceneNodeAnimatorCameraOculusOnFPS::animateNode(ISceneNode* node, u32 time
 		}
 
 		LastAnimationTime = timeMs;
-        LastTarget=camera->getTarget();
 
 		firstUpdate = false;
 	}
@@ -208,7 +206,7 @@ void CSceneNodeAnimatorCameraOculusOnFPS::animateNode(ISceneNode* node, u32 time
 	core::vector3df pos = camera->getPosition();
 
 	// Update rotation
-	core::vector3df target = (LastTarget - camera->getAbsolutePosition());
+	core::vector3df target = (camera->getTarget() - camera->getAbsolutePosition());
 	core::vector3df relativeRotation = target.getHorizontalAngle();
 
 	if (CursorControl)
@@ -216,9 +214,7 @@ void CSceneNodeAnimatorCameraOculusOnFPS::animateNode(ISceneNode* node, u32 time
 		if (CursorPos != CenterCursor)
 		{
 			relativeRotation.Y -= (0.5f - CursorPos.X) * RotateSpeed;
-            if(!MouseYIgnore){
-                relativeRotation.X -= (0.5f - CursorPos.Y) * RotateSpeed * MouseYDirection;
-            }
+            //relativeRotation.X -= (0.5f - CursorPos.Y) * RotateSpeed * MouseYDirection;
 
 			// X < MaxVerticalAngle or X > 360-MaxVerticalAngle
 
@@ -327,17 +323,13 @@ void CSceneNodeAnimatorCameraOculusOnFPS::animateNode(ISceneNode* node, u32 time
 	// write translation
 	camera->setPosition(pos);
 
-    // rotate target by Oculus quaternion
-    LastTarget=target;
-	irr::core::quaternion q=flip_quaternion(m_oculus->getRotation());
-    q.getMatrix().rotateVect(target);
-
 	// write right target
 	target += pos;
 	camera->setTarget(target);
 
-    // get Oculus rift rotation
-	auto v=q.getMatrix() * camera->getViewMatrix();
+    // oculus
+	irr::core::quaternion q=flip_quaternion(m_oculus->getRotation());
+	camera->setViewMatrixLeftAffector(q.getMatrix());
 }
 
 

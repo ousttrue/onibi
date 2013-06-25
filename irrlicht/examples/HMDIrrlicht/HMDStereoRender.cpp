@@ -148,70 +148,59 @@ void HMDStereoRender::setHMD(HMDDescriptor HMD) {
 
 void HMDStereoRender::drawAll(ISceneManager* smgr) 
 {
-	ICameraSceneNode* camera = smgr->getActiveCamera();
-    auto now=_timer->getTime();
-    camera->OnAnimate(now);
-    camera->render();
-	auto v=camera->getViewMatrix();
+    ICameraSceneNode* camera = smgr->getActiveCamera();
+    camera->OnAnimate(_timer->getTime());
 
-    // set camera
-	smgr->setActiveCamera(_pCamera);
+    // Render Left
+    _driver->setRenderTarget(_renderTexture, true, true, video::SColor(0,0,0,0));
 
-	// render left scene
-	{
-        // rendertarget
-		_driver->setRenderTarget(_renderTexture, true, true, video::SColor(0,0,0,0));
+    _pCamera->setProjectionMatrix(_projectionLeft);
 
-        // projection
-		_pCamera->setProjectionMatrix(_projectionLeft);
+    vector3df r = camera->getRotation();
+    vector3df tx(-_eyeSeparation, 0.0,0.0);
+    tx.rotateXZBy(-r.Y);
+    tx.rotateYZBy(-r.X);
+    tx.rotateXYBy(-r.Z);
 
-        // view
-		irr::core::matrix4 m;
-        m[12]=_eyeSeparation;
-		_pCamera->setViewMatrixAffector(v * m);
+    _pCamera->setPosition(camera->getPosition() + tx);
+    _pCamera->setTarget(camera->getTarget() + tx);  
+	_pCamera->setViewMatrixLeftAffector(camera->getViewMatrixLeftAffector());
 
-        // render
-		smgr->drawAll();
-    }
-    // render left distortion
-    {
-		_driver->setRenderTarget(0, false, false, video::SColor(0,100,100,100));
-		_driver->setViewPort(_viewportLeft);
+    smgr->setActiveCamera(_pCamera);
+    smgr->drawAll();
 
-		_distortionCB.lensCenter[0] = _lensShift;
+    _driver->setRenderTarget(0, false, false, video::SColor(0,100,100,100));
+    _driver->setViewPort(_viewportLeft);
 
-		_driver->setMaterial(_renderMaterial); 
-		_driver->drawIndexedTriangleList(_planeVertices, 4, _planeIndices, 2);
-	}
- 
-	// render right scene
-	{
-        // rendertarget
-		_driver->setRenderTarget(_renderTexture, true, true, video::SColor(0,0,0,0));
+    _distortionCB.lensCenter[0] = _lensShift;
 
-        // projection
-		_pCamera->setProjectionMatrix(_projectionRight);
+    _driver->setMaterial(_renderMaterial); 
+    _driver->drawIndexedTriangleList(_planeVertices, 4, _planeIndices, 2);
 
-        // view
-		irr::core::matrix4 m;
-        m[12]=-_eyeSeparation;
-		_pCamera->setViewMatrixAffector(v * m);
+    // Render Right
+    _driver->setRenderTarget(_renderTexture, true, true, video::SColor(0,0,0,0));
+    _pCamera->setProjectionMatrix(_projectionRight);
 
-        // render
-		smgr->drawAll();
-    }
-    // render right distortion
-    {
-		_driver->setRenderTarget(0, false, false, video::SColor(0,100,100,100));  
-		_driver->setViewPort(_viewportRight);
+    vector3df r2 = camera->getRotation();
+    vector3df tx2(-_eyeSeparation, 0.0,0.0);
+    tx.rotateXZBy(-r2.Y);
+    tx.rotateYZBy(-r2.X);
+    tx.rotateXYBy(-r2.Z);
 
-		_distortionCB.lensCenter[0] = -_lensShift;
+    _pCamera->setPosition(camera->getPosition() + tx2);
+    _pCamera->setTarget(camera->getTarget() + tx2);  
+	_pCamera->setViewMatrixLeftAffector(camera->getViewMatrixLeftAffector());
 
-		_driver->setMaterial(_renderMaterial); 
-		_driver->drawIndexedTriangleList(_planeVertices, 4, _planeIndices, 2);
-	}
+    smgr->drawAll();
 
-    // restore camera
-	smgr->setActiveCamera(camera);
+    _driver->setRenderTarget(0, false, false, video::SColor(0,100,100,100));  
+    _driver->setViewPort(_viewportRight);
+
+    _distortionCB.lensCenter[0] = -_lensShift;
+
+    _driver->setMaterial(_renderMaterial); 
+    _driver->drawIndexedTriangleList(_planeVertices, 4, _planeIndices, 2);
+
+    smgr->setActiveCamera(camera);
 }
 
