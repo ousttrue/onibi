@@ -56,6 +56,8 @@ end
 
 configuration {}
 
+include "irrmikulus"
+
 -- Official examples
 --include "Demo"
 include "01.HelloWorld"

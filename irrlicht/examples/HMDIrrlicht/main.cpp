@@ -162,17 +162,15 @@ int main(int argc, char* argv[]){
 
     device->getCursorControl()->setVisible(false);
 
-    {
-        // Render loop
-        irr::core::vector3df rot;
-        while(device->run()){
-            driver->beginScene(true,true,irr::video::SColor(0,100,100,100));
+    // Render loop
+    irr::core::vector3df rot;
+    while(device->run()){
+        driver->beginScene(true,true,irr::video::SColor(0,100,100,100));
 
-            renderer.drawAll(smgr);
+        renderer.drawAll(smgr);
 
-            // end scene
-            driver->endScene();
-        }
+        // end scene
+        driver->endScene();
     }
 
     return 0;
