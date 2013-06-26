@@ -16,15 +16,15 @@ buildoptions {
 	"/wd4996",
 }
 includedirs {
-	"../../irrlicht/include",
-	"../../irrlicht/include/scene",
-	"../../irrlicht/include/io",
-	"../../irrlicht/include/video",
-    "../../bullet",
-    "../../freeglut/include",
-    "../../glew/include",
     "../libpolymesh",
     "../rigid",
+	"../../include",
+	"../../include/scene",
+	"../../include/io",
+	"../../include/video",
+    "../../../bullet",
+    "../../../freeglut/include",
+    "../../../glew/include",
 }
 defines {
 	"NOMINMAX",
