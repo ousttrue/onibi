@@ -4,12 +4,12 @@
 
 namespace irr {
 
-void irrMMDsetup(IrrlichtDevice *device)
+void irrMMDsetup(IrrlichtDevice *device, f32 scalingFactor)
 {
 	{
 		// add pmd loader
 		scene::CPMDMeshFileLoader *loader=
-			new scene::CPMDMeshFileLoader(device->getSceneManager());
+			new scene::CPMDMeshFileLoader(device->getSceneManager(), scalingFactor);
 		device->getSceneManager()->addExternalMeshLoader(loader);
 		loader->drop();
 	}

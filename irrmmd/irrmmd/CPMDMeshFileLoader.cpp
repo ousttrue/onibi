@@ -234,7 +234,7 @@ static btGeneric6DofSpringConstraint *createConstraint(const pmd::Joint &c,
 }
 
 static IAnimatedMesh* buildMesh(
-		pmd::Loader &loader, video::IVideoDriver *driver)
+		pmd::Loader &loader, video::IVideoDriver *driver, f32 scalingFactor)
 {
 	CCustomSkinnedMesh *mesh = new CCustomSkinnedMesh();
 
@@ -247,7 +247,7 @@ static IAnimatedMesh* buildMesh(
 	for(size_t i=0; i<loader.vertices.size(); ++i){
 		pmd::Vertex &v=loader.vertices[i];
 		mesh->addVertex(video::S3DVertex(
-					v.pos.x, v.pos.y, v.pos.z,
+					v.pos.x * scalingFactor, v.pos.y * scalingFactor, v.pos.z * scalingFactor,
 					v.normal.x, v.normal.y, v.normal.z,
 					video::SColor(255, 255, 255, 255), // white
 					v.uv.x, v.uv.y),
@@ -285,14 +285,14 @@ static IAnimatedMesh* buildMesh(
 		}
 		// setup material
 		video::SMaterial &material=indexBuffer->Material;
+		
 		material.DiffuseColor=diffuse;
 		material.AmbientColor=ambient;
 		material.SpecularColor=specular;
 		material.Shininess=m.specular;
-
-		material.GouraudShading=false;
+		material.GouraudShading=true;
 		material.Lighting=true;
-		//material.BackfaceCulling=false;
+		material.BackfaceCulling=false;
 		if(m.texture!=""){
 			// setup texture
 			io::path texture_path(
@@ -327,7 +327,7 @@ static IAnimatedMesh* buildMesh(
 	for(size_t i=0; i<loader.bones.size(); ++i){
 		pmd::Bone &b=loader.bones[i];
 		IJoint *joint=mesh->addJoint(b.name.c_str(), 
-				core::vector3df(b.pos.x, b.pos.y, b.pos.z));
+				core::vector3df(b.pos.x * scalingFactor, b.pos.y * scalingFactor, b.pos.z * scalingFactor));
 	}
 	// build herarchy
 	for(size_t i=0; i<loader.bones.size(); ++i){
@@ -365,7 +365,7 @@ static IAnimatedMesh* buildMesh(
 		for(size_t j=0; j<m.indices.size(); ++j){
 			morphing->addIndexCoord(m.indices[j], 
 					core::vector3df(
-						m.pos_list[j].x, m.pos_list[j].y, m.pos_list[j].z));
+						m.pos_list[j].x * scalingFactor, m.pos_list[j].y * scalingFactor, m.pos_list[j].z * scalingFactor));
 		}
 	}
 
@@ -415,13 +415,13 @@ static IAnimatedMesh* buildMesh(
 		{
 		case 0 : 
 			// Bone’Ç]
-			rigidBody=bulletWorld->createKinematicsMoveRigidBody(
+			rigidBody=bulletWorld->createKinematicsMoveRigidBody(scalingFactor,
 					rb.name, shape, info, centerOfMass, joint, rigidOffsetInBone);
 			break;
 
 		case 1 : 
 			// •¨—‰‰ŽZ
-			rigidBody=bulletWorld->createPhysicsBoveRigidBody(
+			rigidBody=bulletWorld->createPhysicsBoveRigidBody(scalingFactor,
 					rb.name, shape, info, centerOfMass, 
 					joint, rigidOffsetInBone);
 			break;
@@ -429,7 +429,7 @@ static IAnimatedMesh* buildMesh(
 		case 2 : 
 			// •¨—‰‰ŽZ(BoneˆÊ’u‡‚í‚¹)
 			rigidBody=bulletWorld->
-				createKinematicsMoveAndPhysicsRotateRigidBody(
+				createKinematicsMoveAndPhysicsRotateRigidBody(scalingFactor,
 						rb.name, shape, info, centerOfMass,
 						joint, rigidOffsetInBone);
 			break;
@@ -459,8 +459,8 @@ static IAnimatedMesh* buildMesh(
 // CPMDMeshFileLoader
 ///////////////////////////////////////////////////////////////////////////////
 //! Constructor
-CPMDMeshFileLoader::CPMDMeshFileLoader(ISceneManager *smgr)
-	: SceneManager(smgr)
+CPMDMeshFileLoader::CPMDMeshFileLoader(ISceneManager *smgr, f32 scalingFactor)
+	: SceneManager(smgr), ScalingFactor(scalingFactor)
 {
 }
 
@@ -505,7 +505,7 @@ IAnimatedMesh* CPMDMeshFileLoader::createMesh(io::IReadFile* file)
 
 	// build mesh
 	IAnimatedMesh *animMesh=buildMesh(
-			loader, SceneManager->getVideoDriver());
+			loader, SceneManager->getVideoDriver(), ScalingFactor);
 
 	// restore current directory
 	util::cd(oldDirectory.c_str());

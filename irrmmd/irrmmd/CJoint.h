@@ -45,10 +45,27 @@ public:
 		RelativeOffset=offset; 
 	}
 	virtual core::matrix4 getAccumulation()const { return Accumulation; }
+	virtual core::matrix4 getAccumulation(f32 scaling)const { 
+        core::matrix4 m=Accumulation;
+        f32 inv_scaling=1.0f/scaling;
+        m[12]*=inv_scaling;
+        m[13]*=inv_scaling;
+        m[14]*=inv_scaling;
+        return m; 
+    }
 	virtual void setAccumulation(const core::matrix4 &m){ Accumulation=m; }
+	virtual void setAccumulation(const core::matrix4 &m, f32 scaling){ 
+        Accumulation=m; 
+        Accumulation[12]*=scaling;
+        Accumulation[13]*=scaling;
+        Accumulation[14]*=scaling;
+    }
 	virtual core::vector3df getAccumulatedPosition()const{ 
 		return Accumulation.getTranslation(); 
 	}
+	virtual core::vector3df getAccumulatedPosition(f32 scaling)const{ 
+        return getAccumulatedPosition()*(1.0f/scaling);
+    }
 	virtual core::quaternion getCurrentRotation()const{ 
 		return MotionRotation;
 	}

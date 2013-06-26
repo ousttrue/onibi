@@ -1,4 +1,5 @@
 #include <irrlicht.h>
+#include <irrMMD.h>
 #include "HMDStereoRender.h"
 #include "CSceneNodeAnimatorCameraOculusOnFPS.h"
 #include <memory>
@@ -12,7 +13,10 @@ const int MSPF=1000/30;
 
 int main(int argc, char **argv)
 {
-	bool isFullscreen=true;
+	bool isFullscreen=false;
+    // Check fullscreen
+    for (int i=1;i<argc;i++) isFullscreen |= !strcmp("-f", argv[i]);
+
     auto device = std::shared_ptr<irr::IrrlichtDevice>(
             irr::createDevice(
                 irr::video::EDT_OPENGL,
@@ -21,6 +25,7 @@ int main(int argc, char **argv)
             [](irr::IrrlichtDevice* p){ p->drop(); }
             );
     assert(device);
+    auto smgr=device->getSceneManager();
     device->setWindowCaption(L"Irrlicht");
 
     // Oculus stereo renderer
@@ -46,22 +51,26 @@ int main(int argc, char **argv)
     keymaps.push_back(irr::SKeyMap(irr::EKA_STRAFE_LEFT, irr::KEY_KEY_A));
     keymaps.push_back(irr::SKeyMap(irr::EKA_STRAFE_RIGHT, irr::KEY_KEY_D));
     keymaps.push_back(irr::SKeyMap(irr::EKA_JUMP_UP, irr::KEY_SPACE));
+    //keymaps.push_back(irr::SKeyMap(irr::EKA_MOVE_UP, irr::KEY_UP));
+    keymaps.push_back(irr::SKeyMap(irr::EKA_CROUCH, irr::KEY_DOWN));
     auto camera= irr::scene::CSceneNodeAnimatorCameraOculusOnFPS::addCameraSceneNodeOclusOnFPS(
-		device->getSceneManager(), device->getCursorControl(),
+		smgr, device->getCursorControl(),
 			0, 
                 80.0f, .1f, -1, 
                 keymaps.pointer(), keymaps.size(), 
                 true, .5f, false, true);
-    camera->setPosition(irr::core::vector3df(50,50,-60));
-    camera->setTarget(irr::core::vector3df(-70,30,-60));
+    camera->setPosition(irr::core::vector3df(0,15, -100));
+    camera->setTarget(irr::core::vector3df(0, 15, 0));
     {
-		irr::scene::ISceneNodeAnimator* anim = device->getSceneManager()->createCollisionResponseAnimator(
+		/*
+		irr::scene::ISceneNodeAnimator* anim = smgr->createCollisionResponseAnimator(
                 0, camera, 
                 irr::core::vector3df(30,50,30),
                 irr::core::vector3df(0,-10,0), 
                 irr::core::vector3df(0,30,0));
         camera->addAnimator(anim);
         anim->drop();  // And likewise, drop the animator when we're done referring to it.
+		*/
     }
  
 	////////////////////////////////////////////////////////////
@@ -79,7 +88,7 @@ int main(int argc, char **argv)
 	{
 		// add skybox
 		auto SkyBox = 
-			device->getSceneManager()->addSkyBoxSceneNode(
+			smgr->addSkyBoxSceneNode(
 					device->getVideoDriver()->getTexture("irrlicht2_up.jpg"),
 					device->getVideoDriver()->getTexture("irrlicht2_dn.jpg"),
 					device->getVideoDriver()->getTexture("irrlicht2_lf.jpg"),
@@ -89,54 +98,51 @@ int main(int argc, char **argv)
 	}
 	{
 		auto planemesh = 
-			device->getSceneManager()->addHillPlaneMesh("myHill", 
+			smgr->addHillPlaneMesh("myHill", 
 					irr::core::dimension2d<irr::f32>(24, 24), 
 					irr::core::dimension2d<irr::u32>(100, 100));
-		auto q3sn = device->getSceneManager()->
+		auto q3sn = smgr->
 			addOctreeSceneNode(planemesh);
 		//q3sn->setMaterialFlag(video::EMF_LIGHTING, false);
 		q3sn->setMaterialTexture(0, device->getVideoDriver()->getTexture(MEDIA_PATH "wall.jpg"));
 	}
+
 	{
 		// create light
 		auto light 
-			= device->getSceneManager()->addLightSceneNode(camera, 
+			= smgr->addLightSceneNode(0, 
 					irr::core::vector3df(100, 100, -100), 
-					irr::video::SColorf(100.0, 100.0, 100.0, 0.0), 1500.0f);
+					irr::video::SColorf(1.0f, 1.0f, 1.0f), 100.0f);
 	}
 
-#if 0
+    // load a dwarf
+    auto dwarf = smgr->getMesh(MEDIA_PATH "dwarf.x");
+    auto dwarfNode = smgr->addAnimatedMeshSceneNode(dwarf);
+    dwarfNode->setPosition(irr::core::vector3df(40, 0, 20));
+
 	////////////////////////////////////////////////////////////
 	// load pmd model and vmd motion
 	////////////////////////////////////////////////////////////
 	// setup custom loader
-	irrMMDsetup(device);
+    irr::irrMMDsetup(device.get(), 1.0f);
 
-	// load 
-	scene::CCustomSkinnedMesh *mesh=0;
-	for(int i=1; i<argc; ++i){
-#ifdef UNICODE
-		wchar_t unicode[MAX_PATH];
-		MultiByteToWideChar(CP_OEMCP, 0, argv[i], -1,
-			unicode, MAX_PATH);
+    auto mesh=dynamic_cast<irr::scene::CCustomSkinnedMesh*>(
+            smgr->getMesh(MEDIA_PATH "model.pmd"));
+    if(mesh){
+        std::shared_ptr<irr::scene::CVMDCustomSkinMotion> motion(
+			new irr::scene::CVMDCustomSkinMotion,
+            [](irr::scene::CVMDCustomSkinMotion *p){ p->drop(); }
+            );
+        if(motion->load(MEDIA_PATH "motion.vmd")){
+            mesh->setMotion(motion.get());
+        }
 
-		io::path path(unicode);
-#else
-		io::path path(argv[i]);
-#endif
-		if(core::hasFileExtension(path, "pmd")){
-			mesh=dynamic_cast<scene::CCustomSkinnedMesh*>(
-					receiver->loadMesh(path));
-		}
-		else if(core::hasFileExtension(path, "vmd")){
-			scene::CVMDCustomSkinMotion *motion=new scene::CVMDCustomSkinMotion;
-			if(motion->load(path)){
-				mesh->setMotion(motion);
-			}
-			motion->drop();
-		}
-	}
-#endif
+		auto node = smgr->addAnimatedMeshSceneNode(mesh);
+		node->setAnimationSpeed(30);
+		//node->setMaterialFlag(irr::video::EMF_LIGHTING, false);
+		//Model->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);
+		//node->setDebugDataVisible(scene::EDS_OFF);
+    }
 
     device->getCursorControl()->setVisible(false);
 
@@ -145,7 +151,7 @@ int main(int argc, char **argv)
     {
         // draw
         device->getVideoDriver()->beginScene(true, true, 0xFF6060FF);
-		renderer.drawAll(device->getSceneManager());
+		renderer.drawAll(smgr);
         device->getVideoDriver()->endScene();
 
         // fixed FPS. wait for next frame

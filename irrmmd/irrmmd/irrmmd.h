@@ -8,7 +8,7 @@
 
 namespace irr {
 
-void irrMMDsetup(IrrlichtDevice *device);
+void irrMMDsetup(IrrlichtDevice *device, f32 scalingFactor=20/1.58);
 
 namespace scene {
 

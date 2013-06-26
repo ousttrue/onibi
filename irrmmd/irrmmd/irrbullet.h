@@ -44,17 +44,20 @@ namespace bullet {
 		void syncBone();
 
 		IRigidBody *createKinematicsMoveRigidBody(
+                f32 scalingFactor,
 				const std::string &name, IShape *shape,
 				btRigidBody::btRigidBodyConstructionInfo &info,
 				const btTransform &centerOfMass,
 				scene::IJoint *bone, const btTransform &offsetInBone);
 		IRigidBody *createPhysicsBoveRigidBody(
+                f32 scalingFactor,
 				const std::string &name, IShape *shape,
 				btRigidBody::btRigidBodyConstructionInfo &info,
 				const btTransform &centerOfMass,
 				scene::IJoint *bone, const btTransform &offsetInBone
 				);
 		IRigidBody *createKinematicsMoveAndPhysicsRotateRigidBody(
+                f32 scalingFactor,
 				const std::string &name, IShape *shape,
 				btRigidBody::btRigidBodyConstructionInfo &info,
 				const btTransform &centerOfMass,

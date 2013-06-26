@@ -28,7 +28,7 @@ class IShape;
 class CDefaultRigidBody : public IRigidBody
 {
 public:
-	CDefaultRigidBody(const std::string &name, IShape *shape, 
+	CDefaultRigidBody(f32 scalingFactor, const std::string &name, IShape *shape, 
 			btRigidBody::btRigidBodyConstructionInfo &info,
 			const btTransform &centerOfMass);
 	virtual ~CDefaultRigidBody();
@@ -49,7 +49,7 @@ private:
 class CKinematicsRigidBody : public IRigidBody, btMotionState
 {
 public:
-	CKinematicsRigidBody(const std::string &name, IShape *shape,
+	CKinematicsRigidBody(f32 scalingFactor, const std::string &name, IShape *shape,
 			btRigidBody::btRigidBodyConstructionInfo &info,
 			const btTransform &centerOfMass,
 			scene::IJoint *bone,
@@ -85,7 +85,7 @@ private:
 class CPhysicsBoneRigidBody : public IRigidBody, btMotionState
 {
 public:
-	CPhysicsBoneRigidBody(const std::string &name, IShape *shape,
+	CPhysicsBoneRigidBody(f32 scalingFactor, const std::string &name, IShape *shape,
 			btRigidBody::btRigidBodyConstructionInfo &info,
 			const btTransform &centerOfMass,
 			scene::IJoint *bone,
@@ -119,7 +119,9 @@ private:
 class CKinematicsMoveAndPhysicsRotateRigidBody : public IRigidBody, btMotionState
 {
 public:
-	CKinematicsMoveAndPhysicsRotateRigidBody(const std::string &name, 
+	CKinematicsMoveAndPhysicsRotateRigidBody(
+            f32 scalingFactor,
+            const std::string &name, 
 			IShape *shape,
 			btRigidBody::btRigidBodyConstructionInfo &info,
 			const btTransform &centerOfMass,

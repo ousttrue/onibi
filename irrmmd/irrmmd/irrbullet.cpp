@@ -79,33 +79,36 @@ void CWorld::syncBone()
 }
 
 IRigidBody *CWorld::createKinematicsMoveRigidBody(
+        f32 scalingFactor,
 		const std::string &name, IShape *shape,
 		btRigidBody::btRigidBodyConstructionInfo &info,
 		const btTransform &centerOfMass,
 		scene::IJoint *bone, const btTransform &offsetInBone)
 {
-	return new CKinematicsRigidBody(name, shape, info, centerOfMass, bone, offsetInBone);
+	return new CKinematicsRigidBody(scalingFactor, name, shape, info, centerOfMass, bone, offsetInBone);
 }
 
 IRigidBody *CWorld::createPhysicsBoveRigidBody(
+        f32 scalingFactor,
 		const std::string &name, IShape *shape,
 		btRigidBody::btRigidBodyConstructionInfo &info,
 		const btTransform &centerOfMass,
 		scene::IJoint *bone, const btTransform &offsetInBone
 		)
 {
-	return new CPhysicsBoneRigidBody(name,
+	return new CPhysicsBoneRigidBody(scalingFactor, name,
 				shape, info, centerOfMass, bone, offsetInBone);
 }
 
 IRigidBody *CWorld::createKinematicsMoveAndPhysicsRotateRigidBody(
+        f32 scalingFactor,
 		const std::string &name, IShape *shape,
 		btRigidBody::btRigidBodyConstructionInfo &info,
 		const btTransform &centerOfMass,
 		scene::IJoint *bone, const btTransform &offsetInBone
 		)
 {
-	return new CKinematicsMoveAndPhysicsRotateRigidBody(name,
+	return new CKinematicsMoveAndPhysicsRotateRigidBody(scalingFactor, name,
 				shape, info, centerOfMass, bone, offsetInBone);
 }
 

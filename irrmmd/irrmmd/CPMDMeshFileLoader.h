@@ -12,10 +12,11 @@ namespace scene
 	class CPMDMeshFileLoader : public IMeshLoader
 	{
 		ISceneManager* SceneManager;
+        f32 ScalingFactor;
 
 	public:
 		//! Constructor
-		CPMDMeshFileLoader(ISceneManager *smgr);
+		CPMDMeshFileLoader(ISceneManager *smgr, f32 scalingFactor);
 
 		//! destructor
 		virtual ~CPMDMeshFileLoader();
