@@ -6,14 +6,14 @@ configuration "Debug"
 do
     defines { "DEBUG" }
     flags { "Symbols" }
-    targetdir "../debug"
+    targetdir "../../debug"
 end
 
 configuration "Release"
 do
     defines { "NDEBUG" }
     flags { "Optimize" }
-    targetdir "../release"
+    targetdir "../../release"
 end
 
 configuration "gmake"

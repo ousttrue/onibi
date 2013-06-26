@@ -13,14 +13,13 @@ files {
 }
 includedirs {
     "../HMDIrrlicht",
-    "../../../../../_oculus/TinyRoom/LibOVR/include",
-
+    "../../irrext/irrmmd",
+    "../../irrext/libpolymesh",
+    "../../irrext/rigid",
     "../../../bullet",
-    "../../../irrmmd/irrmmd",
-    "../../../irrmmd/libpolymesh",
-    "../../../irrmmd/rigid",
     "../../../glew/include",
     "../../../freeglut/include",
+    "../../../../../_oculus/TinyRoom/LibOVR/include",
 }
 libdirs {
     "../../../../../_oculus/TinyRoom/debug",

@@ -24,22 +24,7 @@ namespace polymesh {
       char cInterpolationY[16];
       char cInterpolationZ[16];
       char cInterpolationRot[16];
-
-      template<class READER>
-        void
-        read(READER &reader)
-        {
-          name=reader.getString(15);
-          frame=reader.get(TYPE<unsigned int>());
-          pos=reader.get(TYPE<Vector3>());
-          q=reader.get(TYPE<Quaternion>());
-          reader.getBytes(cInterpolationX, 16);
-          reader.getBytes(cInterpolationY, 16);
-          reader.getBytes(cInterpolationZ, 16);
-          reader.getBytes(cInterpolationRot, 16);
-        }
-
-      bool operator<(const Bone &rhs){ return frame<rhs.frame; }
+     bool operator<(const Bone &rhs){ return frame<rhs.frame; }
     };
     inline std::ostream& operator<<(std::ostream &os, const Bone &rhs)
     {
@@ -68,15 +53,6 @@ namespace polymesh {
       std::string name;
       unsigned int frame;
       float influence;
-
-      template<class READER>
-        void
-        read(READER &reader)
-        {
-          name=reader.getString(15);
-          frame=reader.get(TYPE<unsigned int>());
-          influence=reader.get(TYPE<float>());
-        }
 
       bool operator<(const Morph &rhs){ return frame<rhs.frame; }
     };

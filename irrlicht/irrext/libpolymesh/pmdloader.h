@@ -213,26 +213,27 @@ namespace polymesh {
     class Loader
     {
     public:
-
-      float version;
-      std::string name;
-      std::string comment;
-      std::vector<Vertex> vertices;
-      std::vector<unsigned short> indices;
-      std::vector<Material> materials;
-      std::vector<Bone> bones;
-      std::vector<IK> ik_list;
-      std::vector<Morph> morph_list;
-      std::vector<std::pair<unsigned short, unsigned char> > bone_list;
-      std::vector<std::string> bone_name_list;
-      std::vector<RigidBody> rigids;
-      std::vector<Joint> joints;
-
+        float scaling;
+        float version;
+        std::string name;
+        std::string comment;
+        std::string english_mdoel_name;
+        std::string english_comment;
+        std::vector<Vertex> vertices;
+        std::vector<unsigned short> indices;
+        std::vector<Material> materials;
+        std::vector<Bone> bones;
+        std::vector<IK> ik_list;
+        std::vector<Morph> morph_list;
+        std::vector<std::pair<unsigned short, unsigned char> > bone_list;
+        std::vector<std::string> bone_name_list;
+        std::vector<RigidBody> rigids;
+        std::vector<Joint> joints;
+        std::vector<std::string> english_bones;
+        std::vector<std::string> english_morphs;
+        std::vector<std::string> english_bone_name_list;
     public:
-      Loader()
-        : version(0)
-        {}
-
+        Loader(float scaling=1.0f);
         bool parse(char *buf, unsigned int size);
 
     private:

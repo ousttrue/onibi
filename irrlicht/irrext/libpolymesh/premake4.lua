@@ -12,6 +12,7 @@ buildoptions {}
 defines {}
 includedirs {
   "../rigid",
+  "../../../bullet",
 }
 linkoptions {}
 libdirs {}

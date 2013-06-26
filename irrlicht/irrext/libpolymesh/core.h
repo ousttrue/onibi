@@ -426,13 +426,43 @@ namespace polymesh {
         }
       }
 
+      template<typename ENUM, typename T>
+          void getEnum(ENUM &out)
+          {
+              unsigned char type;
+              *this >> type;
+              out=static_cast<ENUM>(type);
+          }
+
       template<typename T>
-        typename T::type
-        get(T type)
-        {
-          std::pair<char*, char*> range=get_(T::size);
-          return *((typename T::type*)range.first);
-        }
+          void get(T &out)
+          {
+              std::pair<char*, char*> range=get_(sizeof(T));
+              out=*(T*)range.first;
+          }
+
+      template<typename T>
+          BinaryReader &operator >>(T &out)
+          {
+              get(out);
+              return *this;
+          }
+
+      template<typename T>
+          BinaryReader &operator >>(std::vector<T> &out)
+          {
+              for(auto it=out.begin(); it!=out.end(); ++it){
+                  *this >> *it;
+              }
+			  return *this;
+          }
+
+      template<typename T, typename U>
+          BinaryReader &operator >>(std::pair<T, U> &out)
+          {
+              *this >> out.first >> out.second;
+			  return *this;
+          }
 
     private:
       CharRange get_(size_t size){
