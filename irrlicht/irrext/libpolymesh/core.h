@@ -2,7 +2,7 @@
 #define LOADER_CORE_H
 
 // Vector2, Vector3, Vector4...
-#include <rigid.h>
+#include "rigid.h"
 
 #include <vector>
 #include <cassert>

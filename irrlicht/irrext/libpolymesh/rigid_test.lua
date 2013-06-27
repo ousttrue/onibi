@@ -1,5 +1,5 @@
 -- A project defines one build target
-project "sample"
+project "libpolymesh_test"
 --kind "WindowedApp"
 kind "ConsoleApp"
 --kind "SharedLib"
@@ -13,7 +13,7 @@ linkoptions {}
 
 configuration "gmake"
 do
-links { "gtest", "gtest_main", "rigid"  }
+links { "gtest", "gtest_main", "libpolymesh"  }
   libdirs { "E:/mingw/lib" }
   includedirs { "E:/mingw/include/gtest" }
   buildoptions { "-Wall" }
@@ -21,7 +21,7 @@ end
 
 configuration "vs*"
 do
-links { "rigid"  }
+links { "libpolymesh"  }
   includedirs { "E:/gtest-1.4.0/include" }
   buildoptions { "-Wall" }
 end

@@ -35,7 +35,7 @@ end
 
 configuration {}
 
+--dofile "libpolymesh/rigid_test.lua"
 include "irrmmd"
 include "libpolymesh"
-include "rigid"
 
