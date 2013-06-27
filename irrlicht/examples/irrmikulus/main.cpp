@@ -59,8 +59,8 @@ int main(int argc, char **argv)
                 80.0f, .1f, -1, 
                 keymaps.pointer(), keymaps.size(), 
                 true, .5f, false, true);
-    camera->setPosition(irr::core::vector3df(0,15, -100));
-    camera->setTarget(irr::core::vector3df(0, 15, 0));
+    camera->setPosition(irr::core::vector3df(0, 40, -100));
+    camera->setTarget(irr::core::vector3df(0, 40, 0));
     {
 		/*
 		irr::scene::ISceneNodeAnimator* anim = smgr->createCollisionResponseAnimator(
@@ -124,7 +124,7 @@ int main(int argc, char **argv)
 	// load pmd model and vmd motion
 	////////////////////////////////////////////////////////////
 	// setup custom loader
-    irr::irrMMDsetup(device.get(), 1.0f);
+    irr::irrMMDsetup(device.get(), 2.5f);
 
     auto mesh=dynamic_cast<irr::scene::CCustomSkinnedMesh*>(
             smgr->getMesh(MEDIA_PATH "model.pmd"));

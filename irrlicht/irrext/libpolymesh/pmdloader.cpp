@@ -298,6 +298,37 @@ bool Loader::validate_()
     return true;
 }
 
+void Loader::scale(float factor)
+{
+    // vertices
+    for(auto it=vertices.begin(); it!=vertices.end(); ++it){
+        it->pos *= factor;
+    }
+    // bone
+    for(auto it=bones.begin(); it!=bones.end(); ++it){
+        it->pos *= factor;
+    }
+    // morph
+    for(auto it=morph_list.begin(); it!=morph_list.end(); ++it){
+        for(auto j=it->pos_list.begin(); j!=it->pos_list.end(); ++j){
+            (*j) *= factor;
+        }
+    }
+    // rigids
+    for(auto it=rigids.begin(); it!=rigids.end(); ++it){
+        it->w *= factor;
+        it->h *= factor;
+        it->d *= factor;
+        it->position *= factor;
+    }
+    // joints
+    for(auto it=joints.begin(); it!=joints.end(); ++it){
+        it->pos *= factor;
+        it->constraintPosA *= factor;
+        it->constraintPosB *= factor;
+        it->springPos *= factor;
+    }
+}
 
 } // namespace
 } // namespace

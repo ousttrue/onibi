@@ -234,6 +234,7 @@ namespace polymesh {
     public:
         Loader();
         bool parse(char *buf, unsigned int size);
+        void scale(float factor);
 
     private:
         bool validate_();

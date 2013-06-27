@@ -58,10 +58,10 @@ void IRigidBody::draw()
 ///////////////////////////////////////////////////////////////////////////////
 // CDefaultRigidBody
 ///////////////////////////////////////////////////////////////////////////////
-CDefaultRigidBody::CDefaultRigidBody(f32 scalingFactor, const std::string &name, IShape *shape, 
+CDefaultRigidBody::CDefaultRigidBody(const std::string &name, IShape *shape, 
 		btRigidBody::btRigidBodyConstructionInfo &info,
 		const btTransform &centerOfMass)
-: IRigidBody(scalingFactor), Name(name)
+: Name(name)
 {
 	shape->grab();
 	Shape=shape;
@@ -93,11 +93,11 @@ void CDefaultRigidBody::draw()
 ///////////////////////////////////////////////////////////////////////////////
 // CKinematicsRigidBody
 ///////////////////////////////////////////////////////////////////////////////
-CKinematicsRigidBody::CKinematicsRigidBody(f32 scalingFactor, const std::string &name, IShape *shape, 
+CKinematicsRigidBody::CKinematicsRigidBody(const std::string &name, IShape *shape, 
 		btRigidBody::btRigidBodyConstructionInfo &info,
 		const btTransform &centerOfMass,
 		scene::IJoint *bone, const btTransform &offsetInBone)
-: IRigidBody(scalingFactor), Name(name), StartPosition(centerOfMass), Bone(bone), OffsetInBone(offsetInBone), isInitialized(false)
+: Name(name), StartPosition(centerOfMass), Bone(bone), OffsetInBone(offsetInBone), isInitialized(false)
 {
 	shape->grab();
 	Shape=shape;
@@ -121,7 +121,7 @@ CKinematicsRigidBody::~CKinematicsRigidBody()
 
 btTransform CKinematicsRigidBody::getBoneRigidTransform()const
 {
-	return getTransform(Bone->getAccumulation(ScalingFactor)) * OffsetInBone;
+	return getTransform(Bone->getAccumulation()) * OffsetInBone;
 }
 
 /// synchronizes world transform from user to physics
@@ -161,14 +161,13 @@ void CKinematicsRigidBody::draw()
 // CPhysicsBoneRigidBody
 ///////////////////////////////////////////////////////////////////////////////
 CPhysicsBoneRigidBody::CPhysicsBoneRigidBody(
-        f32 scalingFactor,
 		const std::string &name, IShape *shape,
 			btRigidBody::btRigidBodyConstructionInfo &info,
 			const btTransform &centerOfMass,
 			scene::IJoint *bone,
 			const btTransform &offsetInBone
 			)
-: IRigidBody(scalingFactor), Name(name), Bone(bone), OffsetInBoneInv(offsetInBone.inverse()), 
+: Name(name), Bone(bone), OffsetInBoneInv(offsetInBone.inverse()), 
 	m_graphicsWorldTrans(centerOfMass)
 {
 	shape->grab();
@@ -200,7 +199,7 @@ void CPhysicsBoneRigidBody::setWorldTransform(
 	// update bone
 	if(Bone){
 		Bone->setAccumulation(
-				getMatrix(m_graphicsWorldTrans * OffsetInBoneInv), ScalingFactor);
+				getMatrix(m_graphicsWorldTrans * OffsetInBoneInv));
 	}
 }
 
@@ -217,7 +216,7 @@ void CPhysicsBoneRigidBody::draw()
 
 void CPhysicsBoneRigidBody::syncBone()
 {
-	core::vector3df pos=Bone->getAccumulatedPosition(ScalingFactor);
+	core::vector3df pos=Bone->getAccumulatedPosition();
 	RigidBody->setCenterOfMassTransform(btTransform(
 				btMatrix3x3::getIdentity(), btVector3(pos.X, pos.Y, pos.Z)));
 	// ’âŽ~‚³‚¹‚é
@@ -238,14 +237,13 @@ void CPhysicsBoneRigidBody::syncBone()
 // CKinematicsMoveAndPhysicsRotateRigidBody
 ///////////////////////////////////////////////////////////////////////////////
 CKinematicsMoveAndPhysicsRotateRigidBody::CKinematicsMoveAndPhysicsRotateRigidBody(
-        f32 scalingFactor,
 		const std::string &name, IShape *shape,
 			btRigidBody::btRigidBodyConstructionInfo &info,
 			const btTransform &centerOfMass,
 			scene::IJoint *bone,
 			const btTransform &offsetInBone
 			)
-: IRigidBody(scalingFactor), Name(name), Bone(bone), m_BoneOffsetInv(offsetInBone.inverse()), 
+: Name(name), Bone(bone), m_BoneOffsetInv(offsetInBone.inverse()), 
 	m_graphicsWorldTrans(centerOfMass)
 {
 	shape->grab();
@@ -287,7 +285,7 @@ void CKinematicsMoveAndPhysicsRotateRigidBody::setWorldTransform(
 		// upate bone
 		t.setOrigin(boneOffset);
 		*/
-		Bone->setAccumulation(getMatrix(t), ScalingFactor);
+		Bone->setAccumulation(getMatrix(t));
 	}
 }
 
@@ -308,8 +306,8 @@ void CKinematicsMoveAndPhysicsRotateRigidBody::syncBone()
 		return;
 	}
 
-	core::vector3df pos=Bone->getAccumulatedPosition(ScalingFactor);
-	RigidBody->setCenterOfMassTransform(getTransform(Bone->getAccumulation(ScalingFactor)));
+	core::vector3df pos=Bone->getAccumulatedPosition();
+	RigidBody->setCenterOfMassTransform(getTransform(Bone->getAccumulation()));
 
 	// ’âŽ~‚³‚¹‚é
 	RigidBody->setLinearVelocity(

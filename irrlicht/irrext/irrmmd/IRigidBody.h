@@ -13,10 +13,7 @@ class IShape;
 
 class IRigidBody : public IReferenceCounted
 {
-protected:
-    f32 ScalingFactor;
 public:
-    IRigidBody(f32 scalingFactor):ScalingFactor(scalingFactor){}
 	virtual ~IRigidBody(){};
 	virtual btRigidBody* getBulletRigidBody()const=0; 
 	virtual IShape* getShape()const=0;

@@ -70,6 +70,14 @@ namespace rigid {
       return Vector3(x*rhs, y*rhs, z*rhs);
     }
 
+    Vector3 &operator*=(float rhs)
+    {
+      x*=rhs;
+      y*=rhs;
+      z*=rhs;
+      return *this;
+    }
+
     bool operator==(const Vector3 &rhs)const
     {
       return x==rhs.x && y==rhs.y && z==rhs.z;
