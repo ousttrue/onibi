@@ -213,7 +213,6 @@ namespace polymesh {
     class Loader
     {
     public:
-        float scaling;
         float version;
         std::string name;
         std::string comment;
@@ -233,7 +232,7 @@ namespace polymesh {
         std::vector<std::string> english_morphs;
         std::vector<std::string> english_bone_name_list;
     public:
-        Loader(float scaling=1.0f);
+        Loader();
         bool parse(char *buf, unsigned int size);
 
     private:

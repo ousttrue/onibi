@@ -262,8 +262,8 @@ private:
 ////////////////////////////////////////////////////////////
 // Loader
 ////////////////////////////////////////////////////////////
-Loader::Loader(float _scaling)
-    : version(0), scaling(_scaling)
+Loader::Loader()
+    : version(0)
     {}
 
 bool Loader::parse(char *buf, unsigned int size)
