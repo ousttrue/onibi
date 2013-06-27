@@ -505,6 +505,7 @@ IAnimatedMesh* CPMDMeshFileLoader::createMesh(io::IReadFile* file)
 	util::cd(directory.c_str());
 
 	// build mesh
+	SceneManager->getFileSystem()->addFileArchive(directory);
 	IAnimatedMesh *animMesh=buildMesh(
 			loader, SceneManager->getVideoDriver());
 
