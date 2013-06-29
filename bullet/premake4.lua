@@ -94,5 +94,5 @@ end
 include "LinearMath"	
 include "BulletCollision"	
 include "BulletDynamics"	
-include "BulletSoftBody"	
+--include "BulletSoftBody"	
 

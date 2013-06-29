@@ -1,7 +1,6 @@
 	project "BulletDynamics"
 		
 	kind "StaticLib"
-	targetdir "../../lib"
 	includedirs {
 		"..",
 	}
