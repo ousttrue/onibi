@@ -1,7 +1,10 @@
 solution "BulletSolution"
 
 language "C++"
-configurations {"Release", "Debug"}
+configurations {
+    "Debug",
+    "Release", 
+}
 
 defines {
     "NOMINMAX",

@@ -5,21 +5,39 @@ kind "ConsoleApp"
 --kind "SharedLib"
 --kind "StaticLib"
 language "C++"
+BOOST_DIR=os.getenv("BOOST_DIR")
 files { 
     "*.cpp",
     "*.h",
 }
 includedirs {
-    "../../../irrlicht/include",
-    "../../../boost",
+    "../../irrlicht/include",
+    BOOST_DIR,
     "../../../msgpack/src",
     "../../../msgpack-rpc-asio/include",
 }
 libdirs {
-    "../../../boost/lib",
+    BOOST_DIR.."/stage/lib",
 }
+
+--configuration "gmake Debug"
+do
+    defines {
+        "BOOST_THREAD_USE_LIB",
+    }
+    links { 
+        "boost_chrono-mgw47-mt-d-1_54",
+        "boost_thread-mgw47-mt-d-1_54",
+        "boost_timer-mgw47-mt-d-1_54",
+        "boost_exception-mgw47-mt-d-1_54",
+        "boost_system-mgw47-mt-d-1_54",
+    }
+end
+
+configuration {}
 links {
     "msgpack",
     "Irrlicht",
+    "Mswsock", "ws2_32",
 }
 

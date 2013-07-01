@@ -16,17 +16,14 @@ flags {
 	"NoIncrementalLink",
     "FloatFast",
 }
-buildoptions {
-	"/wd4996",
-}
 defines {
     'FREEGLUT_STATIC',
 }
 includedirs {
+    "../../irrext/irrmmd",
+    "../../irrext/libpolymesh",
+    "../../irrext/rigid",
     "../../../bullet",
-    "../../../irrmmd/irrmmd",
-    "../../../irrmmd/libpolymesh",
-    "../../../irrmmd/rigid",
     "../../../glew/include",
     "../../../freeglut/include",
 }
@@ -38,12 +35,10 @@ linkoptions {
 libdirs {
 }
 links {
-    "Irrlicht",
-	"vfw32", "glew32",
-    "glut32",
 	"irrmmd", "libpolymesh",
-    "BulletCollision", 
-    "BulletDynamics", 
-    "LinearMath",
+    "BulletDynamics", "BulletCollision", "LinearMath",
+    "Irrlicht",
+    "glew32", "glut32", "OPENGL32",
+    "Shlwapi", "gdi32", "winmm",
 }
 

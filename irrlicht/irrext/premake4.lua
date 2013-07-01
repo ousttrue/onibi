@@ -18,7 +18,11 @@ end
 
 configuration "gmake"
 do
-    buildoptions { "-Wall" }
+    buildoptions { 
+        "-Wall",
+        "-std=c++0x",
+        "-U__STRICT_ANSI__",
+    }
 end
 
 configuration "vs*"

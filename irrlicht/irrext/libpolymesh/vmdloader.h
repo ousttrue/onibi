@@ -3,6 +3,7 @@
 
 #include "core.h"
 #include <map>
+#include <memory>
 
 namespace polymesh {
 
@@ -24,7 +25,7 @@ namespace polymesh {
       char cInterpolationY[16];
       char cInterpolationZ[16];
       char cInterpolationRot[16];
-     bool operator<(const Bone &rhs){ return frame<rhs.frame; }
+     bool operator<(const Bone &rhs)const{ return frame<rhs.frame; }
     };
     inline std::ostream& operator<<(std::ostream &os, const Bone &rhs)
     {
@@ -54,7 +55,7 @@ namespace polymesh {
       unsigned int frame;
       float influence;
 
-      bool operator<(const Morph &rhs){ return frame<rhs.frame; }
+      bool operator<(const Morph &rhs)const{ return frame<rhs.frame; }
     };
 
     struct MorphBuffer

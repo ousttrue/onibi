@@ -5,58 +5,38 @@ kind "ConsoleApp"
 --kind "SharedLib"
 --kind "StaticLib"
 language "C++"
+BOOST_DIR=os.getenv("BOOST_DIR")
 files { 
     "main.cpp",
 }
 includedirs {
+    BOOST_DIR,
     "../../../irrlicht/include",
-    "../../../boost",
     "../../../msgpack/src",
     "../../../msgpack-rpc-asio/include",
 }
 libdirs {
-    "../../../boost/lib",
-}
-links {
-    "msgpack",
-    "Irrlicht",
+    BOOST_DIR.."/stage/lib",
 }
 
-configuration "windows"
+configuration "gmake Debug"
 do
     defines {
-        "WIN32",
-        "_WINDOWS",
+        "BOOST_THREAD_USE_LIB",
+    }
+    links { 
+        "boost_chrono-mgw47-mt-d-1_54",
+        "boost_thread-mgw47-mt-d-1_54",
+        "boost_timer-mgw47-mt-d-1_54",
+        "boost_exception-mgw47-mt-d-1_54",
+        "boost_system-mgw47-mt-d-1_54",
     }
 end
 
-configuration "gmake"
-do
-  buildoptions { "-Wall" }
-end
-
-configuration "vs*"
-do
-  buildoptions { "/wd4996" }
-end
-
-configuration "Debug"
-do
-  defines { "DEBUG" }
-  flags { "Symbols" }
-  targetdir "../../../debug"
-  libdirs {
-      "../../../debug"
-  }
-end
-
-configuration "Release"
-do
-  defines { "NDEBUG" }
-  flags { "Optimize" }
-  targetdir "../../../release"
-  libdirs {
-      "../../../release"
-  }
-end
+configuration {}
+links {
+    "msgpack",
+    "Irrlicht",
+    "Mswsock", "ws2_32",
+}
 

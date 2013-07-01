@@ -12,9 +12,6 @@ flags {
 defines {
     'FREEGLUT_STATIC',
 }
-buildoptions {
-	"/wd4996",
-}
 includedirs {
     "../libpolymesh",
     "../rigid",

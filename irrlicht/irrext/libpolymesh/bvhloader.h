@@ -4,6 +4,7 @@
 #include "core.h"
 #include <map>
 #include <iostream>
+#include <memory>
 
 namespace polymesh {
   namespace bvh {

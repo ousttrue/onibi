@@ -1,14 +1,15 @@
 #include <irrlicht.h>
 #include <cassert>
 #include <iostream>
-
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #ifdef _MSC_VER
 #define _USE_MATH_DEFINES
 #endif
 #include <math.h>
 
 #include "irrMMD.h"
-#include "CAviCreator.h"
 
 #define MEDIA_PATH "../../media/"
 #define WIDTH 640

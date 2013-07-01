@@ -11,6 +11,7 @@ std::string pwd();
 void cd(const std::string &path);
 void cd(const std::wstring &path);
 std::string cp932_to_fs(const std::string &text);
+std::string wide_to_fs(const std::wstring &text);
 
 }
 

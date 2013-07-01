@@ -1,6 +1,9 @@
 -- A solution contains projects, and defines the available configurations
 solution "Irrlicht"
-configurations { "Release", "Debug" }
+configurations { 
+    "Debug",
+    "Release", 
+}
 
 flags {
     "Unicode",
@@ -38,17 +41,15 @@ do
         "WIN32",
         "_WINDOWS",
     }
-    includedirs {
-        "$(DXSDK_DIR)/include",
-    }
-    libdirs {
-        "$(DXSDK_DIR)/lib/x86",
-    }
 end
 
 configuration "gmake"
 do
-    buildoptions { "-Wall", "-std=c++0x", "-U__STRICT_ANSI__",}
+    buildoptions { 
+        "-Wall", 
+        "-std=c++0x", 
+        "-U__STRICT_ANSI__",
+    }
 end
 
 configuration "gmake Debug"
@@ -59,6 +60,12 @@ end
 
 configuration "vs*"
 do
+    includedirs {
+        "$(DXSDK_DIR)/include",
+    }
+    libdirs {
+        "$(DXSDK_DIR)/lib/x86",
+    }
     --linkoptions { "/NODEFAULTLIB:LIBCMT" }
     defines {
         "_CRT_SECURE_NO_DEPRECATE",

@@ -4,6 +4,7 @@
 #include "core.h"
 #include <map>
 #include <stack>
+#include <memory>
 
 namespace polymesh {
   namespace x {

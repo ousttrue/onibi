@@ -1,6 +1,9 @@
 -- A solution contains projects, and defines the available configurations
 solution "examples"
-configurations { "Release", "Debug" }
+configurations { 
+    "Debug",
+    "Release", 
+}
 
 defines {
     "UNICODE",
@@ -36,6 +39,15 @@ do
     linkoptions { "-g" }
 end
 
+configuration "gmake"
+do
+    buildoptions { 
+        "-Wall",
+        "-std=c++0x",
+        "-U__STRICT_ANSI__",
+    }
+end
+
 configuration "vs*"
 do
     defines {
@@ -55,8 +67,6 @@ end
 --]]
 
 configuration {}
-
-include "irrmikulus"
 
 -- Official examples
 --include "Demo"
@@ -91,7 +101,8 @@ include "irrmmd"
 include "msgpack-rpc"
 include "msgpack-rpc-server"
 
-include "HMDIrrlicht"
+--include "HMDIrrlicht"
+--include "irrmikulus"
 
 --[[
 -- onibi examples

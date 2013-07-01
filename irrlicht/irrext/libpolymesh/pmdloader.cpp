@@ -41,15 +41,15 @@ template<typename T>
     BinaryReader<T> &operator>>(BinaryReader<T> &reader, Bone &b)
     {
         b.name=reader.getString(20);
+        unsigned char type;
         reader
             >> b.parent_index
             >> b.tail_index
-            ;
-        reader.getEnum<BONE_TYPE, unsigned char>(b.type);
-        reader
+            >> type
             >> b.ik_index
             >> b.pos
             ;
+        b.type=static_cast<BONE_TYPE>(type);
         return reader;
     }
 
@@ -93,13 +93,13 @@ template<typename T>
     BinaryReader<T> &operator>>(BinaryReader<T> &reader, RigidBody &r)
     {
         r.name=reader.getString(20);
+        unsigned char rigidType;
+        unsigned char processType;
         reader
             >> r.boneIndex
             >> r.group
             >> r.target
-            ;
-        reader.getEnum<RIGID_TYPE, unsigned char>(r.rigidType);
-        reader
+            >> rigidType
             >> r.w
             >> r.h
             >> r.d
@@ -110,8 +110,10 @@ template<typename T>
             >> r.rotAttenuation
             >> r.recoile
             >> r.friction
+            >> processType
             ;
-        reader.getEnum<PROCESS_TYPE, unsigned char>(r.processType);
+        r.rigidType=static_cast<RIGID_TYPE>(rigidType);
+        r.processType=static_cast<PROCESS_TYPE>(processType);
         return reader;
     }
 

@@ -88,7 +88,12 @@ namespace util {
 
 	std::string cp932_to_fs(const std::string &text)
 	{
-		return to_MultiByte(CP_UTF8, to_WideChar(CP_OEMCP, text).c_str());
+		return to_MultiByte(CP_UTF8, to_WideChar(CP_OEMCP, text));
+	}
+
+	std::string wide_to_fs(const std::wstring &text)
+	{
+		return to_MultiByte(932, text);
 	}
 }
 #endif

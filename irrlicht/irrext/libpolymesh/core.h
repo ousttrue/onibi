@@ -426,14 +426,6 @@ namespace polymesh {
         }
       }
 
-      template<typename ENUM, typename T>
-          void getEnum(ENUM &out)
-          {
-              unsigned char type;
-              *this >> type;
-              out=static_cast<ENUM>(type);
-          }
-
       template<typename T>
           void get(T &out)
           {

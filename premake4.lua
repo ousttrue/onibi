@@ -1,6 +1,9 @@
 -- A solution contains projects, and defines the available configurations
 solution "Dependencies"
-configurations { "Release", "Debug" }
+configurations { 
+    "Debug",
+    "Release", 
+}
 configuration "gmake Debug"
 do
     buildoptions { "-g" }

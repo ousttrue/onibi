@@ -44,7 +44,7 @@ bool CVMDCustomSkinMotion::load(const io::path &path)
 {
 	std::vector<char> buf;
 	{
-		std::ifstream io(path.c_str(), std::ios::binary);
+		std::ifstream io(util::wide_to_fs(path.c_str()).c_str(), std::ios::binary);
 		if(!io){
 			return false;
 		}
